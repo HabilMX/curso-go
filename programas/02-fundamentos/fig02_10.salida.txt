@@ -1,0 +1,7 @@
+SERVICIO   PUERTO  TIEMPO   ESTADO
+-------------------------------------
+catalogo   :443      142ms  rapido
+pagos      :443       87ms  rapido
+inventario :443     2310ms  lento
+reportes   :3001    4500ms  muy lento
+viejo      :8080      -1ms  sin medir

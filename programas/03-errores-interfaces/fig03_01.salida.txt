@@ -1,0 +1,5 @@
+nombre: catalogo
+url: https://catalogo.example.com
+puerto: 443
+nuevo puerto: 8443
+{catalogo https://catalogo.example.com 8443}

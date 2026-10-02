@@ -1,0 +1,4 @@
+A: len=3 cap=5 [1 2 3]
+   tras modificar b, a vale: [777 2 3] ← cambió
+B: len=3 cap=3 [1 2 3]
+   tras modificar d, c vale: [1 2 3] ← NO cambió

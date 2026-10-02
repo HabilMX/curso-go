@@ -38,7 +38,7 @@ a hacer exactamente lo que la línea de comandos le pida.
 
 ### 7.1 El cliente HTTP: por qué nunca `http.DefaultClient`
 
-Así quedó el `Revisor` de verdad, el que sí toca la red (`revisor/internal/revisar/revisar.go`):
+Así quedó el `Revisor` de verdad, el que sí toca la red (`programas/revisor/internal/revisar/revisar.go`):
 
 <!-- verificar:extracto:internal/revisar/revisar.go -->
 ```go
@@ -226,7 +226,7 @@ mirar una librería como `cobra` — pero no antes de necesitarlo de verdad.
 ### 7.4 Los dos formatos de salida: tabla y JSON
 
 Así quedó `Tabla`, la función que produce la salida legible por humanos que has visto en toda la lección
-(`revisor/internal/reporte/tabla.go`):
+(`programas/revisor/internal/reporte/tabla.go`):
 
 <!-- verificar:extracto:internal/reporte/tabla.go -->
 ```go

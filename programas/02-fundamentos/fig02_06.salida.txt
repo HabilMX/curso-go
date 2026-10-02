@@ -1,0 +1,2 @@
+# command-line-arguments
+./fig02_06.go:8:14: cannot use "muchos" (untyped string constant) as int value in assignment

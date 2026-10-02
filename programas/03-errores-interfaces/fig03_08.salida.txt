@@ -1,0 +1,8 @@
+1. el mensaje completo:
+   revisando catalogo: no responde
+2. ¿es un ErrNoResponde, aunque este envuelto?
+   true
+3. ¿y si pregunto por otro error?
+   false
+4. el error original, desenvuelto:
+   no responde

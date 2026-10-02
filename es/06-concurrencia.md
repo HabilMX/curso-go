@@ -66,7 +66,7 @@ en Go puede tener cientos de miles de goroutines vivas sin planear nada especial
 impensable con hilos del sistema.
 
 Pero mira este programa, con el bug más común del día uno de concurrencia en Go (completo en
-`revisor/ejemplos/06-goroutines-sin-esperar/main.go`):
+`programas/revisor/ejemplos/06-goroutines-sin-esperar/main.go`):
 
 <!-- verificar:ejemplo:ejemplos/06-goroutines-sin-esperar:nodeterminista -->
 ```go
@@ -149,7 +149,7 @@ El patrón es siempre el mismo, y conviene memorizarlo en este orden:
    goroutines produjeron.
 
 **Qué pasa si te saltas el paso 1 — `Add` faltante —, provocado a propósito** (completo en
-`revisor/ejemplos/06-waitgroup-sin-add/main.go`):
+`programas/revisor/ejemplos/06-waitgroup-sin-add/main.go`):
 
 <!-- verificar:ejemplo:ejemplos/06-waitgroup-sin-add -->
 ```go
@@ -250,7 +250,7 @@ for e := range ch { ... }   // recibe hasta que el canal se cierre Y se vacíe
 
 **Comprobé qué pasa si en vez de un canal uso un slice compartido sin protección**, exactamente el error
 que los canales evitan. Este programa lanza mil goroutines que incrementan la misma variable (completo en
-`revisor/ejemplos/06-carrera-de-datos/main.go`):
+`programas/revisor/ejemplos/06-carrera-de-datos/main.go`):
 
 <!-- verificar:ejemplo:ejemplos/06-carrera-de-datos:nodeterminista -->
 ```go
@@ -346,7 +346,7 @@ normalmente desde una goroutine dedicada que sabe cuándo ya no va a haber más 
 sección 6.7, con `wg.Wait()` seguido de `close`).
 
 **Deadlock, si nadie del otro lado está escuchando.** Lo provoqué con el programa más corto posible
-(completo en `revisor/ejemplos/06-deadlock/main.go`):
+(completo en `programas/revisor/ejemplos/06-deadlock/main.go`):
 
 <!-- verificar:ejemplo:ejemplos/06-deadlock:nodeterminista -->
 ```go
@@ -402,7 +402,7 @@ misma línea donde creas el contexto, antes de escribir cualquier otra cosa.
 
 ### 6.7 `Todos`: la función que junta las tres piezas
 
-Así quedó, de verdad, la función central del `revisor` (`revisor/internal/revisar/todos.go`), después de
+Así quedó, de verdad, la función central del `revisor` (`programas/revisor/internal/revisar/todos.go`), después de
 juntar goroutines, canales, semáforo y `context`:
 
 <!-- verificar:extracto:internal/revisar/todos.go -->
@@ -475,7 +475,7 @@ Léela con las secciones anteriores frescas, porque cada pieza responde a un pro
 ### 6.8 Probarlo sin red: `Falso` y el límite de paralelismo medido
 
 Probar `Todos` contra servicios de verdad sería lento y no determinista. El `revisor` usa un `Revisor`
-falso (`revisor/internal/revisar/falso.go`) que simula respuestas, demoras e incluso servicios que nunca
+falso (`programas/revisor/internal/revisar/falso.go`) que simula respuestas, demoras e incluso servicios que nunca
 contestan, todo en memoria:
 
 <!-- verificar:fragmento -->
@@ -505,7 +505,7 @@ correcta.
 
 Con `Falso`, esta prueba mide algo que de otra forma sería casi imposible de comprobar con confianza: que
 el semáforo de la sección 6.7 de verdad limita cuántas consultas corren a la vez, no solo que "funciona
-en general" (versión completa, sin abreviar, en `revisor/internal/revisar/todos_test.go`):
+en general" (versión completa, sin abreviar, en `programas/revisor/internal/revisar/todos_test.go`):
 
 <!-- verificar:fragmento -->
 ```go

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Verifica los bloques de código de las lecciones 05, 06 y 07, que no son
 # programas de un archivo (como los de 02-04, que revisa verificar-programas.sh)
-# sino EXTRACTOS del proyecto real en revisor/, o EJEMPLOS reales bajo
-# revisor/ejemplos/.
+# sino EXTRACTOS del proyecto real en programas/revisor/, o EJEMPLOS reales bajo
+# programas/revisor/ejemplos/.
 #
-# Por qué existe: un extracto que se copió a mano de revisor/ puede quedar
+# Por qué existe: un extracto que se copió a mano de programas/revisor/ puede quedar
 # desincronizado del código real en el siguiente cambio (pasó de verdad: la
 # familia .yaml y la tabla de §7.4 llegaron a publicarse desincronizados). Un
 # extracto sin ancla verificable no es prueba de nada — así que cada bloque de
@@ -12,7 +12,7 @@
 # HTML justo antes del bloque:
 #
 #   <!-- verificar:extracto:RUTA -->
-#       El bloque debe aparecer TAL CUAL dentro de RUTA (relativa a revisor/),
+#       El bloque debe aparecer TAL CUAL dentro de RUTA (relativa a programas/revisor/),
 #       línea por línea, con UN SOLO corrimiento de indentación CONSTANTE para
 #       todo el bloque (el mismo prefijo de espacios/tabs en cada línea no
 #       vacía) — no "ignorando toda la indentación": una indentación caótica
@@ -20,7 +20,7 @@
 #       tenga esa misma forma) SÍ debe fallar.
 #
 #   <!-- verificar:ejemplo:RUTA -->
-#       El bloque corresponde a un programa real en revisor/RUTA.
+#       El bloque corresponde a un programa real en programas/revisor/RUTA.
 #       1. Primero se COMPILA (go build) — esto tiene que salir 0, sin
 #          excepción. Un error de sintaxis aquí es un error de sintaxis, no
 #          "el ejemplo truena a propósito".
@@ -52,8 +52,8 @@
 #   - el paso de extracción no produjo NINGUNA línea de resultado
 #   - el total de bloques encontrados es 0
 #
-# Uso:   ./verificar-extractos.sh                 (corre sobre el curso real)
-#        ./verificar-extractos.sh --probar        (autoprueba: siembra los
+# Uso:   herramientas/verificar-extractos.sh                 (corre sobre el curso real)
+#        herramientas/verificar-extractos.sh --probar        (autoprueba: siembra los
 #                                                   defectos conocidos — H1 a
 #                                                   H6, más los dos ataques al
 #                                                   piso de la elisión — en
@@ -63,11 +63,11 @@
 # Sale 0 si todo cuadra, 1 si algo no corresponde, 2 si algo está mal armado
 # (incluida la propia compuerta no habiendo podido trabajar).
 set -uo pipefail
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 # ---------------------------------------------------------------------------
 # El verificador de verdad, parametrizado: recibe el glob de lecciones y la
-# carpeta de revisor/, para poder correr tanto sobre el curso real como sobre
+# carpeta de programas/revisor/, para poder correr tanto sobre el curso real como sobre
 # la copia sembrada de la autoprueba con el MISMO código.
 # ---------------------------------------------------------------------------
 correr_verificacion() {
@@ -276,7 +276,7 @@ for numlinea, tipo, ruta, codigo, resto in resultados:
         # extrae las BANDERAS del comando documentado (todo lo que empiece con
         # "-"), y las usa tal cual con go run; el nombre de archivo que trae
         # el comando documentado (p. ej. "sinesperar.go") se ignora, porque el
-        # programa real vive en revisor/ejemplos/, no con ese nombre suelto.
+        # programa real vive en programas/revisor/ejemplos/, no con ese nombre suelto.
         banderas = [tok for tok in comando_doc.split()[2:] if tok.startswith("-")]
 
         # PASO 2: ejecutar de verdad, CON las banderas documentadas. Aquí SÍ
@@ -399,7 +399,7 @@ PY
 
   echo
   echo "  total de bloques go: $total"
-  echo "  extractos: $extractos_ok ok, $extractos_mal mal (línea por línea, indentación constante, contra revisor/)"
+  echo "  extractos: $extractos_ok ok, $extractos_mal mal (línea por línea, indentación constante, contra programas/revisor/)"
   echo "  ejemplos:  $ejemplos_ok ok automático, $ejemplos_manual compilan/corren sin salida comparable en automático, $ejemplos_mal mal"
   echo "  fragmentos declarados (excluidos a propósito): $fragmentos"
   echo "  sin marcar: $sin_marcar"
@@ -649,14 +649,14 @@ EOF
   rm -f "$h4out"
 
   echo
-  echo "  --- autoprueba: H6 (propia, no la de QA) — carpeta revisor/ inexistente ---"
+  echo "  --- autoprueba: H6 (propia, no la de QA) — carpeta programas/revisor/ inexistente ---"
   local h6out; h6out=$(mktemp)
   correr_verificacion "$tmp/es/05-prueba.md" "$tmp/no/existe/esta/carpeta" >"$h6out" 2>&1
   local rc_h6=$?
   if [ "$rc_h6" -ne 0 ] && grep -q "no existe" "$h6out"; then
-    echo "  ✅ H6 detectado: una carpeta de revisor/ inexistente falla cerrado (rc=$rc_h6)."
+    echo "  ✅ H6 detectado: una carpeta de programas/revisor/ inexistente falla cerrado (rc=$rc_h6)."
   else
-    echo "  🔴 H6 NO detectado: una carpeta de revisor/ inexistente no falló cerrado (rc=$rc_h6)."
+    echo "  🔴 H6 NO detectado: una carpeta de programas/revisor/ inexistente no falló cerrado (rc=$rc_h6)."
     fallos=$((fallos+1))
   fi
   rm -f "$h6out"
@@ -676,5 +676,5 @@ if [ "${1:-}" = "--probar" ]; then
   exit $?
 fi
 
-correr_verificacion "es/0[5-7]-*.md" "revisor"
+correr_verificacion "es/0[5-7]-*.md" "programas/revisor"
 exit $?

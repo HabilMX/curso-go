@@ -8,14 +8,22 @@
 # —una de ellas una tabla que el texto llamaba «derecha» estando torcida— y
 # este script existe para que eso no vuelva a pasar.
 #
-# Uso:  ./verificar-programas.sh [idioma]      (por omisión: es)
-#       ./verificar-programas.sh es --mostrar  (imprime la salida real de cada uno)
+# Uso:  herramientas/verificar-programas.sh [idioma]      (por omisión: es)
+#       herramientas/verificar-programas.sh es --mostrar  (imprime la salida real de cada uno)
+#       herramientas/verificar-programas.sh es --exportar DIR
+#           no corre nada: deja en DIR/<leccion>/ cada programa (figNN_NN.go),
+#           su salida documentada (figNN_NN.salida.txt) y los archivos de datos
+#           que necesita. Lo usa generar-programas.sh para armar programas/.
 #
 # Sale 0 si todo cuadra, 1 si alguna salida no coincide.
 set -uo pipefail
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 IDI="${1:-es}"
 MOSTRAR="${2:-}"
+EXPORTAR=""
+if [ "$MOSTRAR" = "--exportar" ]; then
+  MOSTRAR=""; EXPORTAR="${3:?falta el directorio de destino}"
+fi
 TRABAJO=$(mktemp -d)
 trap 'rm -rf "$TRABAJO"' EXIT
 
@@ -71,6 +79,20 @@ for m in re.finditer(r'```go\n(.*?)```(.*?)(?=\n##|\n```go|\Z)', texto, re.S):
         open(os.path.join(d, dat.group(1)), "w", encoding="utf8").write(dat.group(2))
 PY
 done
+
+if [ -n "$EXPORTAR" ]; then
+  for d in "$TRABAJO"/fig*; do
+    [ -d "$d" ] || continue
+    fig=$(basename "$d"); cap=$(basename "$(cat "$d/.capitulo")" .md)
+    mkdir -p "$EXPORTAR/$cap"
+    cp "$d/$fig.go" "$EXPORTAR/$cap/$fig.go"
+    [ -f "$d/.esperado" ] && cp "$d/.esperado" "$EXPORTAR/$cap/$fig.salida.txt"
+    for f in "$d"/*; do
+      case "$f" in *.go) ;; *) [ -f "$f" ] && cp "$f" "$EXPORTAR/$cap/";; esac
+    done
+  done
+  exit 0
+fi
 
 for d in "$TRABAJO"/fig*; do
   [ -d "$d" ] || continue

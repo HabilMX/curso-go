@@ -1,0 +1,5 @@
+mensaje: revisando catalogo: el servidor respondio 503
+es un ErrorHTTP
+  codigo: 503
+  url:    https://catalogo.example.com
+  → es culpa del servidor, conviene reintentar

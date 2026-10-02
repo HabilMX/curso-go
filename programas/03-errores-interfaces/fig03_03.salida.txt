@@ -1,0 +1,2 @@
+catalogo (https://catalogo.example.com:443) — seguro: true
+local (http://localhost:8080) — seguro: false

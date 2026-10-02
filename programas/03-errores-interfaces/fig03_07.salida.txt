@@ -1,0 +1,4 @@
+catalogo   ✅ valido
+           ❌ el nombre no puede estar vacio
+pagos      ❌ el puerto debe estar entre 1 y 65535
+viejo      ❌ el puerto 80 no usa cifrado, usa 443

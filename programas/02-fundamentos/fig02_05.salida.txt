@@ -1,0 +1,2 @@
+# command-line-arguments
+./fig02_05.go:8:5: declared and not used: edad

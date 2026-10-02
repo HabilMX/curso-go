@@ -173,7 +173,7 @@ de otro tipo de error con `errors.As`, la información original sigue ahí.
 ### 5.4 Pruebas: sin librerías, con tabla de casos
 
 Así se ve una prueba real del paquete `servicio` (el archivo completo vive en
-`revisor/internal/servicio/servicio_test.go`):
+`programas/revisor/internal/servicio/servicio_test.go`):
 
 <!-- verificar:extracto:internal/servicio/servicio_test.go -->
 ```go
@@ -453,7 +453,7 @@ fmt.Printf("servicio %s en el puerto %s\n", nombre, puerto) // %s para un int
 ```
 
 Esto **compila** y **corre**, sin panic ni error — y produce una salida rota (programa completo en
-`revisor/ejemplos/05-vet-printf/main.go`):
+`programas/revisor/ejemplos/05-vet-printf/main.go`):
 
 ```
 $ go run ./ejemplos/05-vet-printf/
@@ -568,7 +568,7 @@ fila de la tabla de arriba.
 ### Soluciones
 
 1 y 2 no tienen solución de referencia única: depende de cómo tenías organizado tu propio programa de la
-lección 4. Compara tu resultado contra el código real de `revisor/internal/servicio/servicio.go` del
+lección 4. Compara tu resultado contra el código real de `programas/revisor/internal/servicio/servicio.go` del
 proyecto de este curso.
 
 3. Con `"catalogo https://a.mx 500ms extra\n"`, el mensaje esperado es

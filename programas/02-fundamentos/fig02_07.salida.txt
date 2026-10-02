@@ -1,0 +1,4 @@
+string:  ""
+int:     0
+float64: 0
+bool:    false

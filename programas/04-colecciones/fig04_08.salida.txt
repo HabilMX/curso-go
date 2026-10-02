@@ -1,0 +1,8 @@
+leer de un map nil: 0
+su largo: 0
+panic: assignment to entry in nil map
+
+goroutine 1 [running]:
+main.main()
+	/tmp/fig04_08.go:12 +0x3c
+exit status 2

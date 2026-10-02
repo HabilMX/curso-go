@@ -1,0 +1,4 @@
+cargados 3 servicios:
+  catalogo     https://catalogo.example.com           :443
+  pagos        https://pagos.example.com              :443
+  inventario   https://inventario.example.com         :8080

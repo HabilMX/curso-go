@@ -1,0 +1,6 @@
+SERVICIO     CODIGO  TIEMPO
+-----------------------------
+catalogo        200    142ms
+inventario      503   2310ms
+pagos           200     87ms
+reportes          0      0ms

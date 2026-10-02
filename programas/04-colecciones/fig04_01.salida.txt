@@ -1,0 +1,6 @@
+recien creado: [0 0 0]
+con valores: [443 8080 0]
+cuantos caben: 3
+otro arreglo: [80 443 8443]
+original: [80 443 8443]
+copia:    [999 443 8443]

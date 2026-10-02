@@ -1,0 +1,6 @@
+--- con el revisor real ---
+  catalogo   codigo 200
+  pagos      codigo 200
+--- con el falso, simulando una falla ---
+  catalogo   error: no responde
+  pagos      error: no responde

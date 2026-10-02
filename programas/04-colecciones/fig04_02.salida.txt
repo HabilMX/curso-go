@@ -1,0 +1,5 @@
+vacio: [] · largo 0 · es nil: true
+con datos: [catalogo pagos inventario] · largo 3
+cuantos servicios: 3
+el primero: catalogo
+el ultimo:  local

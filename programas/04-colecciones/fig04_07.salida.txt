@@ -1,0 +1,6 @@
+cuantos: 3
+catalogo: 200 142
+no-existe: {Codigo:0 Ms:0}  ← el valor cero
+pagos si esta: 200
+no-existe NO esta
+tras borrar: 2

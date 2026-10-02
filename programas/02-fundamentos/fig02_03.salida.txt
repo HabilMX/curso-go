@@ -1,0 +1,4 @@
+servicio: catalogo
+puerto: 443
+tiempo de respuesta: 0.142
+usa HTTPS: true

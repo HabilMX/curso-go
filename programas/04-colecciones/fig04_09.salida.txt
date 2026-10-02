@@ -1,0 +1,2 @@
+reportes=3001 catalogo=443 pagos=443 inventario=8080
+
