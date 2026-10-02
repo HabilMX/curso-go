@@ -1,0 +1,11 @@
+# Binarios que "go build" deja sin "-o" cuando se corre desde el directorio
+# del propio paquete (pasó de verdad una vez: revisor/05-vet-printf quedó
+# commiteado por accidente). Cada carpeta de cmd/ y de ejemplos/ produce un
+# binario con el nombre de su propia carpeta si se compila así.
+/revisor
+/servidor-demo
+/ejemplos/05-vet-printf/05-vet-printf
+/ejemplos/06-goroutines-sin-esperar/06-goroutines-sin-esperar
+/ejemplos/06-waitgroup-sin-add/06-waitgroup-sin-add
+/ejemplos/06-carrera-de-datos/06-carrera-de-datos
+/ejemplos/06-deadlock/06-deadlock
