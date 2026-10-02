@@ -12,8 +12,10 @@
 #       herramientas/verificar-programas.sh es --mostrar  (imprime la salida real de cada uno)
 #       herramientas/verificar-programas.sh es --exportar DIR
 #           no corre nada: deja en DIR/<leccion>/ cada programa (figNN_NN.go),
-#           su salida documentada (figNN_NN.salida.txt) y los archivos de datos
-#           que necesita. Lo usa generar-programas.sh para armar programas/.
+#           su salida documentada y los archivos de datos que necesita. La salida
+#           va en figNN_NN.salida.txt; si el programa NO compila o termina en un
+#           panic a propósito (la lección enseña ese error), va en
+#           figNN_NN.error-esperado.txt. Lo usa generar-programas.sh.
 #
 # Sale 0 si todo cuadra, 1 si alguna salida no coincide.
 set -uo pipefail
@@ -86,7 +88,11 @@ if [ -n "$EXPORTAR" ]; then
     fig=$(basename "$d"); cap=$(basename "$(cat "$d/.capitulo")" .md)
     mkdir -p "$EXPORTAR/$cap"
     cp "$d/$fig.go" "$EXPORTAR/$cap/$fig.go"
-    [ -f "$d/.esperado" ] && cp "$d/.esperado" "$EXPORTAR/$cap/$fig.salida.txt"
+    if [ -f "$d/.esperado" ]; then
+      # error a propósito: no compila («# command-line-arguments») o termina en panic
+      if grep -qE '^(# command-line-arguments|panic:)' "$d/.esperado"; then ext="error-esperado.txt"; else ext="salida.txt"; fi
+      cp "$d/.esperado" "$EXPORTAR/$cap/$fig.$ext"
+    fi
     for f in "$d"/*; do
       case "$f" in *.go) ;; *) [ -f "$f" ] && cp "$f" "$EXPORTAR/$cap/";; esac
     done

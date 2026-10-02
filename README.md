@@ -26,7 +26,7 @@ go run fig03_06.go          # compara lo que imprime con fig03_06.salida.txt
 ```
 
 Cada programa de las lecciones 2 a 4 es un archivo `figNN_NN.go` dentro de la carpeta de su lección, con su
-salida esperada al lado (`figNN_NN.salida.txt`). Algunos terminan con un error a propósito, porque la lección enseña justo ese error; su salida esperada lo muestra. Se ejecutan desde la carpeta de su lección: los que leen un archivo de
+salida esperada al lado (`figNN_NN.salida.txt`). Los que fallan a propósito, porque la lección enseña justo ese error (no compilan o terminan en un `panic`), traen `figNN_NN.error-esperado.txt` en lugar de la salida. Se ejecutan desde la carpeta de su lección: los que leen un archivo de
 datos (como `servicios.txt` en la lección 4) lo traen ahí mismo. El proyecto completo que se construye en las
 lecciones 5 a 7 está en [`programas/revisor/`](programas/revisor/), con sus pruebas (`go test ./...`).
 
