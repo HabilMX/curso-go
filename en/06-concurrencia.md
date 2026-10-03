@@ -333,9 +333,9 @@ the same wrong number every time.
 **without** `-race` is not tested. Run `-race` from the first concurrency test you write, not when
 "something looks odd" — because, as you just saw, nothing looks odd until it is too late.
 
-### 6.5 The other two ways to get stuck: lock and deadlock
+### 6.5 The other two ways to fail: panic and deadlock
 
-**Lock (panic), if you close a channel wrongly:**
+**Panic, if you close a channel wrongly:**
 
 - Sending to an already closed channel panics: `panic: send on closed channel`.
 - Closing a channel twice panics: `panic: close of closed channel`.

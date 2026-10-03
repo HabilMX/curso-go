@@ -235,7 +235,7 @@ debería haber. Pero la lección real no es el mensaje del panic — es que **el
 El lema del lenguaje, y vale la pena memorizarlo tal cual: **«no comuniques compartiendo memoria; comparte
 memoria comunicando».** En vez de que cada goroutine escriba su resultado en un mapa o slice compartido
 —lo que exigiría proteger cada acceso con un candado—, cada una manda su resultado por un **canal**, y
-una sola goroutina (o el código principal) los recoge del otro lado.
+una sola goroutine (o el código principal) los recoge del otro lado.
 
 <!-- verificar:fragmento -->
 ```go
@@ -334,9 +334,9 @@ número equivocado ni siquiera es el mismo equivocado cada vez.
 `-race` no está probado. Corre `-race` desde la primera prueba de concurrencia que escribas, no cuando
 "algo se vea raro" — porque, como acabas de ver, nada se ve raro hasta que ya es tarde.
 
-### 6.5 Los otros dos modos de trabarse: candado y deadlock
+### 6.5 Los otros dos modos de fallar: panic y deadlock
 
-**Candado (panic), si cierras mal un canal:**
+**Panic, si cierras mal un canal:**
 
 - Enviar a un canal ya cerrado hace panic: `panic: send on closed channel`.
 - Cerrar un canal dos veces hace panic: `panic: close of closed channel`.

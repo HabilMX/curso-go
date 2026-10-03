@@ -334,9 +334,9 @@ número errado nem sequer é o mesmo errado a cada vez.
 `-race` não está testado. Rode `-race` desde o primeiro teste de concorrência que você escrever, não quando
 "algo parecer estranho" — porque, como você acabou de ver, nada parece estranho até que já seja tarde.
 
-### 6.5 Os outros dois modos de travar: trava e deadlock
+### 6.5 Os outros dois modos de falhar: panic e deadlock
 
-**Trava (panic), se você fechar mal um canal:**
+**Panic, se você fechar mal um canal:**
 
 - Enviar para um canal já fechado dá panic: `panic: send on closed channel`.
 - Fechar um canal duas vezes dá panic: `panic: close of closed channel`.

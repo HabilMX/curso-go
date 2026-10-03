@@ -341,9 +341,9 @@ chiffre faux n'est même pas le même faux à chaque fois.
 n'est pas testé. Lance `-race` dès le premier test de concurrence que tu écris, pas quand « quelque chose a
 l'air bizarre » — parce que, comme tu viens de le voir, rien n'a l'air bizarre jusqu'à ce qu'il soit trop tard.
 
-### 6.5 Les deux autres façons de se bloquer : verrou et deadlock
+### 6.5 Les deux autres façons d'échouer : panic et deadlock
 
-**Verrou (panic), si tu fermes mal un canal :**
+**Panic, si tu fermes mal un canal :**
 
 - Envoyer sur un canal déjà fermé fait un panic : `panic: send on closed channel`.
 - Fermer un canal deux fois fait un panic : `panic: close of closed channel`.

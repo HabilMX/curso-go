@@ -28,7 +28,7 @@ lección 1 de "un programa que cabe en la cabeza" a "un programa que vive en una
 ahora ese `go.mod` va a organizar más de un archivo.
 
 🔑 **Y no es un capricho de organización.** Una prueba que necesita red, un archivo de disco o un
-servidor levantado para correr es una prueba lenta, fràgil y que nadie corre seguido. Separar en paquetes
+servidor levantado para correr es una prueba lenta, frágil y que nadie corre seguido. Separar en paquetes
 es lo que te permite escribir pruebas que corren en milisegundos, sin tocar nada externo — y eso es lo
 que hace que sí las corras, en cada cambio, no solo cuando te acuerdas.
 
@@ -522,7 +522,7 @@ ok  	github.com/habil/revisor/internal/vacio	0.001s
 ```
 
 Si `internal/vacio` no tuviera **ninguna** función `Test...`, esa línea se ve exactamente igual:
-`ok`, en verde, sin ninguna marca de que no se ejecutó nada. La única forma de distinguir "until pasó, en
+`ok`, en verde, sin ninguna marca de que no se ejecutó nada. La única forma de distinguir "todo pasó, en
 serio" de "no había nada que correr" es mirar el conteo con `-v` (que sí imprime cada `RUN`) o, mejor,
 nunca confiar en un paquete que no tiene ningún archivo `_test.go` — eso `go test` sí lo dice, como en la
 fila de la tabla de arriba.
