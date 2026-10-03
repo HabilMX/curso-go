@@ -7,11 +7,15 @@
 **Cada programa de este curso se compila y se ejecuta automáticamente en cada cambio; el sello verde lo comprueba y cualquiera puede ver la corrida.**
 Haz clic en el sello para abrir la última corrida y ver, paso por paso, qué se ejecutó y qué salió.
 
-> Por ahora el curso está en español; las traducciones vienen en camino.
+> El curso está completo en cinco idiomas: español (la fuente), inglés, francés, portugués de Brasil y búlgaro.
 
 ## Dónde está el contenido
 
 - 📘 **[Español — el curso completo](es/README.md)** ← empieza aquí
+- 📗 **[English](en/README.md)** — the complete course in English
+- 📙 **[Français](fr/README.md)** — le cours complet en français
+- 📕 **[Português (Brasil)](pt/README.md)** — o curso completo em português
+- 📓 **[Български](bg/README.md)** — пълният курс на български
 - 💻 **[`programas/`](programas/)** — todos los programas del curso, listos para ejecutar
 
 ## Cómo ver que los programas funcionan
@@ -40,7 +44,7 @@ no pueden diferir.
 | | |
 |---|---|
 | `es/` | el curso en español, una lección por archivo |
-| `en/`, `fr/`, `pt/`, `bg/` | **futuras:** las traducciones todavía no existen |
+| `en/`, `fr/`, `pt/`, `bg/` | el curso traducido a inglés, francés, portugués de Brasil y búlgaro, con los mismos archivos que `es/` y el código idéntico |
 | `programas/` | los programas de las lecciones 2 a 4 (uno por archivo, con su salida esperada) y `revisor/`, el proyecto real de las lecciones 5 a 7 |
 | `herramientas/` | los scripts que verifican el curso (ver abajo) |
 | `.github/workflows/verificar.yml` | la verificación automática que muestra el sello |
@@ -55,7 +59,7 @@ Dentro de `herramientas/`:
 | `verificar-extractos.sh` | lo mismo para las lecciones 5 a 7: compara cada bloque marcado **extracto** contra el archivo real de `programas/revisor/`, byte a byte, y compila y corre cada **ejemplo** real |
 | `generar-programas.sh` | arma `programas/` desde las lecciones; con `--comprobar` verifica que esté al día |
 | `medir-profundidad.sh` | mide las líneas de explicación por lección |
-| `verificar-traducciones.sh`, `registrar-traduccion.sh`, `registro-traducciones.tsv` | llevan el control de qué traducciones están al día, para cuando existan |
+| `verificar-traducciones.sh`, `registrar-traduccion.sh`, `registro-traducciones.tsv` | llevan el control de qué traducciones están al día |
 
 ## Qué es un programa, qué es un extracto, y por qué importa la diferencia
 
