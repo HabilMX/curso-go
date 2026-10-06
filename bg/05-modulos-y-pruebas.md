@@ -621,6 +621,7 @@ ok  	github.com/habil/revisor/internal/vacio	0.001s
 4. [Go Blog: The Cover Story](https://go.dev/blog/cover) — как работи `go test -cover` отвътре и
    защо високото число не винаги означава добри тестове.
 5. [Пускайте версии без страх в собствената си инфраструктура](https://www.habil.mx/bg/blog/cicd-devsecops-own-infrastructure/) — статия за път до продукция, в който тестовете, наред с други контролни точки, могат да спрат пускането.
+6. [Тестове, които наистина хващат грешки: отвъд покритието и зеления quality gate](https://www.habil.mx/bg/blog/tests-that-catch-errors-coverage-quality-gate/) — статия за това, защо високото покритие не е достатъчно и как да се провери, че един тест върши работа, идеята от раздели 5.7 и 5.8.
 
 ### Термини от този урок
 

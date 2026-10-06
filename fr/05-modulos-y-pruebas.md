@@ -637,6 +637,7 @@ projet de ce cours.
 4. [Go Blog: The Cover Story](https://go.dev/blog/cover) — comment fonctionne `go test -cover` en interne, et
    pourquoi un chiffre élevé ne signifie pas toujours de bons tests.
 5. [Livrer sans crainte sur votre propre infrastructure](https://www.habil.mx/fr/blog/cicd-devsecops-infrastructure-propre/) — article sur un chemin vers la production où les tests, parmi d'autres portes, peuvent arrêter une livraison.
+6. [Des tests qui attrapent vraiment les erreurs : au-delà de la couverture et du quality gate au vert](https://www.habil.mx/fr/blog/tests-qui-attrapent-erreurs-couverture-quality-gate/) — article sur la raison pour laquelle une couverture élevée ne suffit pas et sur la façon de vérifier qu'un test est utile, l'idée des sections 5.7 et 5.8.
 
 ### Termes de cette leçon
 

@@ -628,6 +628,7 @@ in this course's project.
 4. [Go Blog: The Cover Story](https://go.dev/blog/cover) — how `go test -cover` works inside, and why a
    high number doesn't always mean good tests.
 5. [Release without fear on your own infrastructure](https://www.habil.mx/en/blog/cicd-devsecops-own-infrastructure/) — article on a path to production where tests, among other gates, can stop a release.
+6. [Tests that actually catch errors: beyond coverage and a green quality gate](https://www.habil.mx/en/blog/tests-that-catch-errors-coverage-quality-gate/) — article on why high coverage is not enough and how to check that a test is any good, the idea of sections 5.7 and 5.8.
 
 ### Terms from this lesson
 

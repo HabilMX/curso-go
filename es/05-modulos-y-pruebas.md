@@ -621,6 +621,7 @@ proyecto de este curso.
 4. [Go Blog: The Cover Story](https://go.dev/blog/cover) — cómo funciona `go test -cover` por dentro, y
    por qué un número alto no siempre significa pruebas buenas.
 5. [Liberar sin miedo en su propia infraestructura](https://www.habil.mx/es/blog/cicd-devsecops-infraestructura-propia/) — artículo sobre un camino a producción donde las pruebas, entre otras compuertas, pueden detener una liberación.
+6. [Pruebas que sí atrapan errores: más allá de la cobertura y del quality gate en verde](https://www.habil.mx/es/blog/pruebas-que-atrapan-errores-cobertura-quality-gate/) — artículo sobre por qué una cobertura alta no basta y cómo comprobar que una prueba sirve, la idea de las secciones 5.7 y 5.8.
 
 ### Términos de esta lección
 
