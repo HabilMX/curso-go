@@ -627,6 +627,7 @@ in this course's project.
    `internal/` rule, straight from the Go release notes.
 4. [Go Blog: The Cover Story](https://go.dev/blog/cover) — how `go test -cover` works inside, and why a
    high number doesn't always mean good tests.
+5. [Release without fear on your own infrastructure](https://www.habil.mx/en/blog/cicd-devsecops-own-infrastructure/) — article on a path to production where tests, among other gates, can stop a release.
 
 ### Terms from this lesson
 

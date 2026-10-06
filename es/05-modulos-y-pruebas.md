@@ -620,6 +620,7 @@ proyecto de este curso.
    `internal/`, directo de las notas de versión de Go.
 4. [Go Blog: The Cover Story](https://go.dev/blog/cover) — cómo funciona `go test -cover` por dentro, y
    por qué un número alto no siempre significa pruebas buenas.
+5. [Liberar sin miedo en su propia infraestructura](https://www.habil.mx/es/blog/cicd-devsecops-infraestructura-propia/) — artículo sobre un camino a producción donde las pruebas, entre otras compuertas, pueden detener una liberación.
 
 ### Términos de esta lección
 

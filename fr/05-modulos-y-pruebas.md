@@ -636,6 +636,7 @@ projet de ce cours.
    `internal/`, tirée directement des notes de version de Go.
 4. [Go Blog: The Cover Story](https://go.dev/blog/cover) — comment fonctionne `go test -cover` en interne, et
    pourquoi un chiffre élevé ne signifie pas toujours de bons tests.
+5. [Livrer sans crainte sur votre propre infrastructure](https://www.habil.mx/fr/blog/cicd-devsecops-infrastructure-propre/) — article sur un chemin vers la production où les tests, parmi d'autres portes, peuvent arrêter une livraison.
 
 ### Termes de cette leçon
 

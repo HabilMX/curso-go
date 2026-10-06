@@ -1011,6 +1011,7 @@ le plus et celle qui coûte le plus cher dans un vrai programme.
    pourquoi les erreurs sont des valeurs et comment on les gère de façon idiomatique.
 4. **[Paquet `errors` — documentation officielle](https://pkg.go.dev/errors)** — la référence exacte de
    `errors.Is`, `errors.As` et `errors.Unwrap`.
+5. **[Des API prêtes pour les agents d'IA](https://www.habil.mx/fr/blog/apis-pretes-pour-les-agents-d-ia/)** — article sur les erreurs d'API qui indiquent au client s'il faut réessayer (un 503) ou non (un 404), la distinction de la section 3.5.
 
 ### Termes de cette leçon
 

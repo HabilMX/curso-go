@@ -1000,6 +1000,7 @@ olvida y el que más caro sale en un programa real.
    Go sobre por qué los errores son valores y cómo se manejan idiomáticamente.
 4. **[Paquete `errors` — documentación oficial](https://pkg.go.dev/errors)** — la referencia exacta de
    `errors.Is`, `errors.As` y `errors.Unwrap`.
+5. **[APIs listas para agentes de IA](https://www.habil.mx/es/blog/apis-listas-para-agentes-de-ia/)** — artículo sobre errores de API que le dicen al cliente si reintentar (un 503) o no (un 404), la distinción de la sección 3.5.
 
 ### Términos de esta lección
 

@@ -1000,6 +1000,7 @@ func (m MiRevisor) revisar(s Servicio) Estado { return Estado{} }
    Go за това защо грешките са стойности и как се обработват идиоматично.
 4. **[Пакетът `errors` — официална документация](https://pkg.go.dev/errors)** — точният справочник за
    `errors.Is`, `errors.As` и `errors.Unwrap`.
+5. **[API, готови за ИИ агенти](https://www.habil.mx/bg/blog/apis-ready-for-ai-agents/)** — статия за грешките на API, които казват на клиента дали да опита отново (503), или не (404), разликата от раздел 3.5.
 
 ### Термини от този урок
 

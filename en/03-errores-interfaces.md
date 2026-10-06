@@ -1008,6 +1008,7 @@ the one most easily forgotten and the one that costs the most in a real program.
    why errors are values and how they are handled idiomatically.
 4. **[Package `errors` — official documentation](https://pkg.go.dev/errors)** — the exact reference for
    `errors.Is`, `errors.As`, and `errors.Unwrap`.
+5. **[APIs ready for AI agents](https://www.habil.mx/en/blog/apis-ready-for-ai-agents/)** — article on API errors that tell the client whether to retry (a 503) or not (a 404), the distinction in section 3.5.
 
 ### Terms from this lesson
 

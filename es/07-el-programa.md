@@ -695,6 +695,7 @@ máquina; compara la forma de tu resultado contra las secciones correspondientes
    referencia de `GOOS`/`GOARCH` y las demás variables de entorno que controlan `go build`.
 5. [text/tabwriter](https://pkg.go.dev/text/tabwriter) — la herramienta estándar para alinear columnas
    cuando el cálculo manual de la sección 7.4 se queda corto (varias columnas de ancho variable).
+6. [APIs listas para agentes de IA](https://www.habil.mx/es/blog/apis-listas-para-agentes-de-ia/) — artículo sobre qué necesita una API para que un cliente automático la use con control: errores claros, reintentos sin duplicar y límites visibles.
 
 ### Términos de esta lección
 

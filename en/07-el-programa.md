@@ -695,6 +695,7 @@ machine; compare the shape of your result against the corresponding sections (7.
    reference for `GOOS`/`GOARCH` and the other environment variables that control `go build`.
 5. [text/tabwriter](https://pkg.go.dev/text/tabwriter) — the standard tool for aligning columns when the
    manual calculation from section 7.4 falls short (several columns of variable width).
+6. [APIs ready for AI agents](https://www.habil.mx/en/blog/apis-ready-for-ai-agents/) — article on what an API needs so that an automated client can use it with control: clear errors, retries without duplicates and visible limits.
 
 ### Terms from this lesson
 

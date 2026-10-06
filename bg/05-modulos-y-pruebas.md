@@ -620,6 +620,7 @@ ok  	github.com/habil/revisor/internal/vacio	0.001s
    `internal/`, направо от бележките към версията на Go.
 4. [Go Blog: The Cover Story](https://go.dev/blog/cover) — как работи `go test -cover` отвътре и
    защо високото число не винаги означава добри тестове.
+5. [Пускайте версии без страх в собствената си инфраструктура](https://www.habil.mx/bg/blog/cicd-devsecops-own-infrastructure/) — статия за път до продукция, в който тестовете, наред с други контролни точки, могат да спрат пускането.
 
 ### Термини от този урок
 
