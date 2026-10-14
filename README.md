@@ -48,7 +48,7 @@ no pueden diferir.
 | `programas/` | los programas de las lecciones 2 a 4 (uno por archivo, con su salida esperada) y `revisor/`, el proyecto real de las lecciones 5 a 7 |
 | `herramientas/` | los scripts que verifican el curso (ver abajo) |
 | `.github/workflows/verificar.yml` | la verificación automática que muestra el sello |
-| `verificar-publicable.sh` | revisa que el material no contenga rutas internas ni claves antes de publicarlo |
+| `verificar-publicable.sh` | revisa que el material no contenga rutas internas ni claves antes de publicarlo. Se corre en el repositorio de trabajo: lee una lista de patrones que no se publica, porque enumerarlos en claro delataría justo lo que protegen |
 | `LICENSE.md` | CC BY-SA 4.0 |
 
 Dentro de `herramientas/`:
