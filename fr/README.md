@@ -53,7 +53,7 @@ deux langages, c'est ce qui t'apprend vraiment en quoi ils diffèrent ; lire des
 | 3 | [Structs, méthodes, erreurs et interfaces](03-errores-interfaces.md) | le `revisor` avec des structs et des interfaces | structs, méthodes, pointeurs, erreurs comme valeurs, interfaces |
 | 4 | [Collections : slices et maps](04-colecciones.md) | la liste des services et le rapport | slices, maps, `range`, ordre stable |
 | 5 | [Modules et tests](05-modulos-y-pruebas.md) | le vrai projet, avec des tests | `go mod`, table de cas, `-race`, couverture |
-| 6 | [Concurrence](06-concurrencia.md) | **qu'il vérifie tout en même temps** | goroutines, canaux, `context`, `WaitGroup`, sémaphore |
+| 6 | [Concurrence](06-concurrencia.md) | **un `revisor` qui vérifie tout en même temps** | goroutines, canaux, `context`, `WaitGroup`, sémaphore |
 | 7 | [Le programme terminé](07-el-programa.md) | CLI, HTTP, JSON et binaire | `net/http`, `flag`, `encoding/json`, compilation croisée |
 
 ## L'ordre n'est pas l'ordre évident, et c'est exprès
