@@ -24,7 +24,7 @@
 Вече имаш четирите части на `revisor`, изградени поотделно: `servicio` дефинира речника
 (урок 2-3), `config` чете конфигурацията (урок 5), `revisar.Todos` проверява всичко едновременно (урок
 6). Единственото, което липсва, е онова, което превръща тези части в **програма, която някой друг може да използва, без
-да чете изходния код**: да говори HTTP наистина (досега го тествахме само с `Falso`), да получава
+да чете изходния код**: да говори HTTP наистина (досега го тествахме само с фалшив `Revisor`), да получава
 флагове от терминала вместо фиксирани стойности в кода, да създава формат, който друга
 програма може да консумира, и да може да се компилира и разпространява като един-единствен файл.
 
@@ -38,16 +38,23 @@
 
 ### 7.1 HTTP клиентът: защо никога `http.DefaultClient`
 
-Ето как изглежда истинският `Revisor`, онзи, който наистина докосва мрежата (`programas/revisor/internal/revisar/revisar.go`):
+Ето как изглежда истинската имплементация на `Revisor`, онази, която наистина докосва мрежата. Тя живее в
+собствен пакет, `consulta` (`programas/revisor/internal/consulta/consulta.go`), отделно от интерфейса, който
+удовлетворява и който остава в `revisar` до `Todos` — този, който го използва (урок 5, раздел 5.2):
 
-<!-- verificar:extracto:internal/revisar/revisar.go -->
+<!-- verificar:extracto:internal/consulta/consulta.go -->
 ```go
-// HTTP es el Revisor de verdad: hace una petición GET y mira qué contesta.
+// HTTP consulta un servicio de verdad: hace una petición GET y mira qué
+// contesta.
+//
+// Cumple la interfaz revisar.Revisor sin declararlo y sin importar revisar: en
+// Go basta con tener el método Revisar (lección 3). La interfaz la declara quien
+// la usa, revisar.Todos; este paquete solo devuelve un tipo concreto.
 type HTTP struct {
 	Cliente *http.Client
 }
 
-// NuevoHTTP construye el Revisor con un cliente propio.
+// NuevoHTTP construye la consulta HTTP con un cliente propio.
 //
 // 🔴 El cliente es propio y no http.DefaultClient a propósito: el cliente por
 // omisión de Go NO tiene tiempo límite. Una petición contra un servicio que
@@ -55,7 +62,7 @@ type HTTP struct {
 // error y sin síntoma.
 //
 // El Timeout del cliente es la red de seguridad de último recurso. El límite que
-// de verdad manda es el del context, uno por servicio, que pone Todos.
+// de verdad manda es el del context, uno por servicio, que pone revisar.Todos.
 func NuevoHTTP(limiteGeneral time.Duration) HTTP {
 	return HTTP{Cliente: &http.Client{Timeout: limiteGeneral}}
 }
@@ -76,7 +83,7 @@ func (r HTTP) Revisar(ctx context.Context, s servicio.Servicio) servicio.Estado 
 		return servicio.Estado{
 			Servicio: s,
 			Duracion: time.Since(inicio),
-			Err:      fmt.Errorf("armando la peticion: %w", err),
+			Err:      fmt.Errorf("armando la peticion: %w", sinURL(err)),
 		}
 	}
 
@@ -122,9 +129,9 @@ func (r HTTP) Revisar(ctx context.Context, s servicio.Servicio) servicio.Estado 
 може да се преизползва за следващата заявка към същия сървър и програмата накрая отваря
 нова връзка всеки път, вместо да преизползва онези, които вече има.
 
-**`traducir` заменя суровата грешка на `net/http` с такава, която се чете в таблица:**
+**`traducir` заменя суровата грешка на `net/http` с такава, която се чете в таблица, и без URL-а:**
 
-<!-- verificar:extracto:internal/revisar/revisar.go -->
+<!-- verificar:extracto:internal/consulta/consulta.go -->
 ```go
 func traducir(ctx context.Context, err error) error {
 	if ctx.Err() == context.DeadlineExceeded {
@@ -133,12 +140,32 @@ func traducir(ctx context.Context, err error) error {
 	if ctx.Err() == context.Canceled {
 		return fmt.Errorf("consulta cancelada")
 	}
-	return fmt.Errorf("no responde: %w", err)
+	return fmt.Errorf("no responde: %w", sinURL(err))
 }
 ```
 
-Грешката, която `net/http` дава по подразбиране, носи целия URL и думата `Get`, които в таблица на
-отчет само заемат място и не казват нищо ново на читателя — затова се превежда, преди да бъде показана.
+<!-- verificar:extracto:internal/consulta/consulta.go -->
+```go
+func sinURL(err error) error {
+	var ue *url.Error
+	if errors.As(err, &ue) {
+		return ue.Err
+	}
+	return err
+}
+```
+
+🔒 **Грешката, която `net/http` дава по подразбиране, носи целия URL**, с думата `Get` отпред:
+`Get "http://127.0.0.1:59587/estado?token=abc123#ancla": dial tcp 127.0.0.1:59587: connect: connection refused`.
+Това не е просто шум в таблица: един URL може да носи токен в *query string* или потребител преди `@`, а
+причината излиза както си е в отчета — в таблица или в JSON —, който стига до терминал, до лог или до
+система за известяване. Всяка грешка, която връща клиентът на `net/http`, е `*url.Error` (типът от пакета
+`net/url`, който събира операцията, URL-а и причината), затова `sinURL` я разпознава с `errors.As` (урок 3)
+и задържа само причината. `config` вече отхвърля URL-ите с потребител или парола (урок 5, раздел 5.3), но
+токен в *query string* минава — има услуги, които го изискват, за да бъдат проверени —, затова тази втора
+врата не се доверява на първата. Тестът `TestEjecutar_elReporteNoRepiteLaURL` (в `cmd/revisor/main_test.go`)
+го проверява от край до край: проверява сървър, който вече е затворен, с `?token=abc123` в URL-а, и се
+проваля, ако отчетът, в който и да е от двата формата, съдържа `token` или `abc123`.
 
 ### 7.2 `main` не се тества; `ejecutar` — да
 
@@ -421,21 +448,22 @@ revisor-linux-amd64: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), static
 ```
 $ go build -o revisor-normal ./cmd/revisor
 $ wc -c revisor-normal
-9464130 revisor-normal
+9515602 revisor-normal
 
 $ go build -ldflags="-s -w" -o revisor-chico ./cmd/revisor
 $ wc -c revisor-chico
-6386194 revisor-chico
+6419442 revisor-chico
 ```
 
-**От 9.46 MB на 6.39 MB, истинско намаление от 32%**, като се махнат таблицата със символи (`-s`) и
+**От 9.52 MB на 6.42 MB, истинско намаление от 32.5%**, като се махнат таблицата със символи (`-s`) и
 информацията за дебъгване на DWARF (`-w`), които нормалният двоичен файл включва, за да може дебъгер да
 го инспектира. За двоичен файл, който ще разпространяваш в продукция и няма да дебъгваш точно там, тези данни
 не служат за нищо и само заемат място — за такъв, който активно разработваш, ги запази.
 
 ### 7.8 Тестване на код, който прави HTTP, без истинска мрежа: `httptest`
 
-До урок 6 тестовете на конкурентност използваха `Falso` (`Revisor`, който никога не докосва мрежата). За
+До урок 6 тестовете на конкурентност използваха `revisorFalso` (`Revisor`, който никога не докосва мрежата и
+съществува само в тестовете). За
 да се тества **цялата** програма — флагове, четене на конфигурацията, истинският HTTP клиент, отчетът —
 без зависимост от външна услуга, нито от това нещо да слуша на фиксиран порт, `net/http/httptest`
 пуска истински сървър, на порт, който операционната система назначава сама, вътре в самия процес на
@@ -533,7 +561,7 @@ ENTRYPOINT ["/revisor", "--config", "/servicios.txt"]
 $ docker build -t revisor-demo:scratch .
 $ docker run --rm revisor-demo:scratch --formato tabla
 SERVICIO  ESTADO    TIEMPO  DETALLE
-ejemplo   FALLA      176ms  no responde: Get "https://example.com": tls: failed to verify certificate: x509: certificate signed by unknown authority
+ejemplo   FALLA      112ms  no responde: tls: failed to verify certificate: x509: certificate signed by unknown authority
 ```
 
 **Провали се — и не заради `revisor`, а заради нещо, което никой образ `scratch` не носи: списъка с удостоверяващи
@@ -561,13 +589,13 @@ ENTRYPOINT ["/revisor", "--config", "/servicios.txt"]
 $ docker build -f Dockerfile.certs -t revisor-demo:scratch-certs .
 $ docker run --rm revisor-demo:scratch-certs --formato tabla
 SERVICIO  ESTADO    TIEMPO  DETALLE
-ejemplo   OK         238ms  200
+ejemplo   OK         126ms  200
 
 $ docker images revisor-demo:scratch-certs --format "{{.Size}}"
-14.7MB
+14.8MB
 ```
 
-**14.7 MB общо, срещу 14.4 MB без сертификатите — по-малко от 300 KB, за да се реши проблемът
+**14.8 MB общо, срещу 14.5 MB без сертификатите — по-малко от 300 KB, за да се реши проблемът
 правилно.** Двоичният файл наистина е самодостатъчен за всичко, което е *код на Go*; онова, което никога не носи
 сам, е доверието кои органи са легитимни, защото това е информация за света (кои
 удостоверяващи органи съществуват и все още са валидни), а не нещо, което компилаторът може да реши вместо теб.
@@ -584,7 +612,7 @@ $ docker images revisor-demo:scratch-certs --format "{{.Size}}"
 | Затваряне на тялото на нулев отговор | (ако се направи погрешно) `panic: runtime error: invalid memory address or nil pointer dereference` | Би се случило, ако `defer resp.Body.Close()` се сложи преди проверката на `err`; `revisor` го избягва, като проверява грешката първо (раздел 7.1) |
 | `error`, сериализиран директно в JSON без превод | `{}` (празен обект, без никакви полезни данни, без никаква грешка при компилация, която да предупреди) | `encoding/json` не знае как да превърне интерфейс `error`; затова `reporte` използва `lineaJSON` с причината, вече превърната в текст (раздел 7.4) |
 | Непроверен код на изход в скрипт | Скриптът продължава, сякаш нищо не е станало, макар че някоя услуга се е провалила | `ejecutar` наистина различава 0/1/2 (раздел 7.6); който интегрира `revisor` в pipeline, трябва да чете `$?`, а не само отпечатания изход |
-| Двоичен файл в образ `FROM scratch`, срещу HTTPS | `no responde: Get "https://...": tls: failed to verify certificate: x509: certificate signed by unknown authority` | Липсва списъкът с удостоверяващи органи (`ca-certificates.crt`); копирай го от образ, който го има (раздел 7.10) |
+| Двоичен файл в образ `FROM scratch`, срещу HTTPS | `no responde: tls: failed to verify certificate: x509: certificate signed by unknown authority` | Липсва списъкът с удостоверяващи органи (`ca-certificates.crt`); копирай го от образ, който го има (раздел 7.10) |
 
 ---
 
@@ -635,7 +663,7 @@ $ docker images revisor-demo:scratch-certs --format "{{.Size}}"
 1-7. Няма един-единствен еталонен изход, защото зависи от собствената ти реализация и от собствената ти
 машина; сравни формата на резултата си със съответните раздели (7.1, 7.4, 7.5, 7.6, 7.7).
 
-8. Истинското пускане, върху `revisor` от този курс, на 30 септ. 2026 г.:
+8. Истинското пускане, върху `revisor` от този курс, на 22 окт. 2026 г.:
 
    ```
    $ gofmt -l .
@@ -645,12 +673,13 @@ $ docker images revisor-demo:scratch-certs --format "{{.Size}}"
    (sin salida: limpio)
 
    $ go test ./... -race -cover
-   ok  	github.com/habil/revisor/cmd/revisor	1.21s	coverage: 79.2% of statements
+   ok  	github.com/habil/revisor/cmd/revisor	1.354s	coverage: 81.2% of statements
    	github.com/habil/revisor/cmd/servidor-demo		coverage: 0.0% of statements
-   ok  	github.com/habil/revisor/internal/config	1.17s	coverage: 97.4% of statements
-   ok  	github.com/habil/revisor/internal/reporte	1.18s	coverage: 100.0% of statements
-   ok  	github.com/habil/revisor/internal/revisar	1.33s	coverage: 61.9% of statements
-   ok  	github.com/habil/revisor/internal/servicio	1.17s	coverage: 92.3% of statements
+   ok  	github.com/habil/revisor/internal/config	1.317s	coverage: 95.7% of statements
+   ok  	github.com/habil/revisor/internal/consulta	1.354s	coverage: 56.2% of statements
+   ok  	github.com/habil/revisor/internal/reporte	1.320s	coverage: 100.0% of statements
+   ok  	github.com/habil/revisor/internal/revisar	1.472s	coverage: 97.1% of statements
+   ok  	github.com/habil/revisor/internal/servicio	1.340s	coverage: 92.3% of statements
    ```
 
    `cmd/servidor-demo` излиза с 0.0% без `ok` или `FAIL`, но не защото нещо е счупено: с `-cover`
@@ -659,11 +688,11 @@ $ docker images revisor-demo:scratch-certs --format "{{.Size}}"
    `revisor`, който се разпространява, и няма собствена логика, която да решава каквото и да е — само отговаря онова, което е
    програмиран да отговаря — затова не се нуждае от собствени тестове.
 
-   ⚠️ **61.9% на `internal/revisar` в тази таблица е артефактът, който обяснява раздел 5.7: по
+   ⚠️ **56.2% на `internal/consulta` в тази таблица е артефактът, който обяснява раздел 5.7: по
    пакети не се брои онова, което `TestEjecutar_reportaOKyFalla` (в `cmd/revisor`, малко по-нагоре в същото това
    пускане) упражнява от `Revisar`, когато наистина говори HTTP срещу сървъра `httptest`.** Измерено
-   с `-coverpkg=./...` върху целия проект: `Revisar` се качва на 86.4%, а общото за проекта е 81.5%,
-   а не 61.9%. Ако ще цитираш число за покритие, за да решиш нещо, пусни `-coverpkg=./...` и не се доверявай
+   с `-coverpkg=./...` върху целия проект: `Revisar` се качва на 90.9%, а общото за проекта е 83.3%,
+   а не 56.2%. Ако ще цитираш число за покритие, за да решиш нещо, пусни `-coverpkg=./...` и не се доверявай
    само на числото по пакети.
 
 ---

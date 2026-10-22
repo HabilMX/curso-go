@@ -10,8 +10,8 @@ import (
 )
 
 func TestTodos_casoBasico(t *testing.T) {
-	f := &Falso{Respuestas: map[string]RespuestaFalsa{
-		"pagos": {Codigo: 500},
+	f := &revisorFalso{respuestas: map[string]respuestaFalsa{
+		"pagos": {codigo: 500},
 	}}
 	servicios := []servicio.Servicio{
 		{Nombre: "catalogo", URL: "https://x"},
@@ -24,8 +24,8 @@ func TestTodos_casoBasico(t *testing.T) {
 	if len(estados) != 3 {
 		t.Fatalf("Todos() devolvió %d estados, quería 3", len(estados))
 	}
-	if f.Contador != 3 {
-		t.Errorf("Falso.Contador = %d, quería 3 (una llamada por servicio)", f.Contador)
+	if f.contador != 3 {
+		t.Errorf("revisorFalso.contador = %d, quería 3 (una llamada por servicio)", f.contador)
 	}
 
 	porNombre := map[string]servicio.Estado{}
@@ -41,8 +41,8 @@ func TestTodos_casoBasico(t *testing.T) {
 }
 
 func TestTodos_respetaElTimeoutPorServicio(t *testing.T) {
-	f := &Falso{Respuestas: map[string]RespuestaFalsa{
-		"lento": {Colgado: true},
+	f := &revisorFalso{respuestas: map[string]respuestaFalsa{
+		"lento": {colgado: true},
 	}}
 	servicios := []servicio.Servicio{
 		{Nombre: "lento", URL: "https://x", Timeout: 30 * time.Millisecond},
@@ -67,7 +67,7 @@ func TestTodos_elParaleloLimitaCuantasCorrenALaVez(t *testing.T) {
 	var enVuelo int32
 	var maximoObservado int32
 
-	// Este Falso mide, con un contador atómico, cuántas llamadas a Revisar
+	// Este doble mide, con un contador atómico, cuántas llamadas a Revisar
 	// están en curso AL MISMO TIEMPO. Si el semáforo de Todos funciona,
 	// maximoObservado nunca debe pasar de `limite`.
 	medidor := &medidorDeConcurrencia{

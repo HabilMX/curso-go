@@ -481,38 +481,40 @@ Lis-la avec les sections précédentes en tête, parce que chaque pièce répond
   lecture ne démarrerait jamais parce que nous attendrions d'abord `Wait()`. En le lançant à part, la fermeture
   et la lecture se produisent **en même temps**, pas l'une après l'autre.
 
-### 6.8 Le tester sans réseau : `Falso` et la limite de parallélisme mesurée
+### 6.8 Le tester sans réseau : un `Revisor` factice et la limite de parallélisme mesurée
 
 Tester `Todos` contre de vrais services serait lent et non déterministe. Le `revisor` utilise un `Revisor`
-factice (`programas/revisor/internal/revisar/falso.go`) qui simule des réponses, des délais et même des services
-qui ne répondent jamais, tout en mémoire :
+factice (`programas/revisor/internal/revisar/falso_test.go`) qui simule des réponses, des délais et même des
+services qui ne répondent jamais, tout en mémoire. Il vit dans un fichier `_test.go`, à côté des tests qui
+l'utilisent : `go build` ne le compile pas, donc il ne fait partie ni du programme ni de ce que le paquet
+exporte (leçon 5, section 5.2) :
 
 <!-- verificar:fragmento -->
 ```go
-type Falso struct {
-	Respuestas map[string]RespuestaFalsa
+type revisorFalso struct {
+	respuestas map[string]respuestaFalsa
 	mu         sync.Mutex
-	Contador   int
+	contador   int
 }
 
-func (f *Falso) Revisar(ctx context.Context, s servicio.Servicio) servicio.Estado {
+func (f *revisorFalso) Revisar(ctx context.Context, s servicio.Servicio) servicio.Estado {
 	f.mu.Lock()
-	f.Contador++
+	f.contador++
 	f.mu.Unlock()
 	// ...
 }
 ```
 
 🔒 **Ici, un mutex est bel et bien nécessaire, et c'est l'exception à la règle « préfère les canaux » de la
-section 6.3.** `Contador` est un entier partagé que **beaucoup de goroutines incrémentent en même temps**
-pendant les tests (`Falso.Revisar` est appelé de façon concurrente, une fois pour chaque service que `Todos`
+section 6.3.** `contador` est un entier partagé que **beaucoup de goroutines incrémentent en même temps**
+pendant les tests (`revisorFalso.Revisar` est appelé de façon concurrente, une fois pour chaque service que `Todos`
 est en train d'interroger). Un canal servirait à *envoyer* des résultats, mais pour un simple compteur partagé,
 un `sync.Mutex` autour de l'unique ligne qui le touche est plus simple et plus clair. La règle n'est pas
 « n'utilise jamais de mutex » : c'est « avant d'en utiliser un, demande-toi si un canal exprime mieux ce que tu
 es en train de faire » — et pour envoyer des résultats, presque toujours oui ; pour un compteur partagé, le
 mutex est presque toujours le bon outil.
 
-Avec `Falso`, ce test mesure quelque chose qu'il serait autrement presque impossible de vérifier avec
+Avec un `Revisor` de test, ce test mesure quelque chose qu'il serait autrement presque impossible de vérifier avec
 confiance : que le sémaphore de la section 6.7 limite vraiment le nombre de requêtes qui tournent en même
 temps, pas seulement qu'il « fonctionne en général » (version complète, non abrégée, dans
 `programas/revisor/internal/revisar/todos_test.go`) :
@@ -552,8 +554,8 @@ mesuré pendant l'exécution.
 
 ### 6.9 Le temps, mesuré : en série contre en parallèle
 
-Avec `Falso` configuré pour simuler des délais réels, le test `TestTodos_respetaElTimeoutPorServicio` confirme
-l'autre face de la médaille : un service qui ne répond jamais (`Colgado: true`) avec un
+Avec `revisorFalso` configuré pour simuler des délais réels, le test `TestTodos_respetaElTimeoutPorServicio` confirme
+l'autre face de la médaille : un service qui ne répond jamais (`colgado: true`) avec un
 `Timeout: 30 * time.Millisecond` ne peut pas faire durer `Todos` plus longtemps que cela :
 
 ```
@@ -675,7 +677,7 @@ sent mauvais jusqu'à ce qu'il soit trop tard.
       canal de résultats, sémaphore et `context` par service.
 - [ ] J'ai mesuré, avec un vrai test (pas de mémoire), que la limite de parallélisme du `revisor` est bien
       respectée.
-- [ ] Je sais expliquer pourquoi `Falso.Contador` utilise un mutex au lieu d'un canal, et pourquoi cela ne
+- [ ] Je sais expliquer pourquoi `revisorFalso.contador` utilise un mutex au lieu d'un canal, et pourquoi cela ne
       contredit pas la règle générale de la section 6.3.
 
 ---

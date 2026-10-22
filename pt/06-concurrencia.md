@@ -472,38 +472,40 @@ Leia-a com as seções anteriores frescas, porque cada peça responde a um probl
   nunca começaria porque estaríamos esperando `Wait()` primeiro. Lançando-o à parte, o fechamento e a
   leitura acontecem **ao mesmo tempo**, não um depois do outro.
 
-### 6.8 Testar sem rede: `Falso` e o limite de paralelismo medido
+### 6.8 Testar sem rede: um `Revisor` falso e o limite de paralelismo medido
 
 Testar `Todos` contra serviços de verdade seria lento e não determinístico. O `revisor` usa um `Revisor`
-falso (`programas/revisor/internal/revisar/falso.go`) que simula respostas, demoras e até serviços que nunca
-respondem, tudo em memória:
+falso (`programas/revisor/internal/revisar/falso_test.go`) que simula respostas, demoras e até serviços que
+nunca respondem, tudo em memória. Ele vive em um arquivo `_test.go`, junto dos testes que o usam: o
+`go build` não o compila, então ele não faz parte do programa nem do que o pacote exporta (lição 5, seção
+5.2):
 
 <!-- verificar:fragmento -->
 ```go
-type Falso struct {
-	Respuestas map[string]RespuestaFalsa
+type revisorFalso struct {
+	respuestas map[string]respuestaFalsa
 	mu         sync.Mutex
-	Contador   int
+	contador   int
 }
 
-func (f *Falso) Revisar(ctx context.Context, s servicio.Servicio) servicio.Estado {
+func (f *revisorFalso) Revisar(ctx context.Context, s servicio.Servicio) servicio.Estado {
 	f.mu.Lock()
-	f.Contador++
+	f.contador++
 	f.mu.Unlock()
 	// ...
 }
 ```
 
 🔒 **Aqui sim é preciso um mutex, e é a exceção à regra de "prefira canais" da seção 6.3.**
-`Contador` é um inteiro compartilhado que **muitas goroutines incrementam ao mesmo tempo** durante os
-testes (`Falso.Revisar` é chamado concorrentemente, uma vez para cada serviço que `Todos` está
+`contador` é um inteiro compartilhado que **muitas goroutines incrementam ao mesmo tempo** durante os
+testes (`revisorFalso.Revisar` é chamado concorrentemente, uma vez para cada serviço que `Todos` está
 consultando). Um canal serviria para *mandar* resultados, mas para um contador simples compartilhado, um
 `sync.Mutex` em volta da única linha que o toca é mais simples e mais claro. A regra não é "nunca use
 um mutex": é "antes de usar um, pergunte-se se um canal expressa melhor o que você está fazendo" — e para
 mandar resultados, quase sempre sim; para um contador compartilhado, quase sempre o mutex é a ferramenta
 correta.
 
-Com `Falso`, este teste mede algo que de outra forma seria quase impossível de verificar com confiança: que
+Com um `Revisor` de teste, este teste mede algo que de outra forma seria quase impossível de verificar com confiança: que
 o semáforo da seção 6.7 de fato limita quantas consultas rodam ao mesmo tempo, não só que "funciona
 em geral" (versão completa, sem abreviar, em `programas/revisor/internal/revisar/todos_test.go`):
 
@@ -541,8 +543,8 @@ ao mesmo tempo** — não porque o supomos a partir do código, mas porque um co
 
 ### 6.9 O tempo, medido: em série contra em paralelo
 
-Com `Falso` configurado para simular demoras reais, o teste `TestTodos_respetaElTimeoutPorServicio`
-confirma o outro lado da moeda: um serviço que nunca responde (`Colgado: true`) com um
+Com `revisorFalso` configurado para simular demoras reais, o teste `TestTodos_respetaElTimeoutPorServicio`
+confirma o outro lado da moeda: um serviço que nunca responde (`colgado: true`) com um
 `Timeout: 30 * time.Millisecond` não pode fazer `Todos` demorar mais do que isso:
 
 ```
@@ -662,7 +664,7 @@ inconsistente; com ele, sempre as três linhas.
       goroutines, canal de resultados, semáforo e `context` por serviço.
 - [ ] Medi, com um teste real (não de memória), que o limite de paralelismo do `revisor` é de fato
       respeitado.
-- [ ] Sei explicar por que `Falso.Contador` usa um mutex em vez de um canal, e por que isso não contradiz
+- [ ] Sei explicar por que `revisorFalso.contador` usa um mutex em vez de um canal, e por que isso não contradiz
       a regra geral da seção 6.3.
 
 ---

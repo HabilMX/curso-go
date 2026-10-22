@@ -25,7 +25,7 @@ You already have the four pieces of the `revisor` built separately: `servicio` d
 (lesson 2-3), `config` reads the configuration (lesson 5), `revisar.Todos` queries everything at once
 (lesson 6). The only thing missing is what turns those pieces into **a program someone else can use
 without reading the source code**: that it speak HTTP for real (until now we only tested it with
-`Falso`), that it receive flags from the terminal instead of values fixed in the code, that it produce a
+a fake `Revisor`), that it receive flags from the terminal instead of values fixed in the code, that it produce a
 format another program can consume, and that it can be compiled and distributed as a single file.
 
 This is the lesson where the `revisor` stops being "code that works if I run it, on my machine, with my
@@ -38,17 +38,23 @@ exactly what the command line asks of it.
 
 ### 7.1 The HTTP client: why never `http.DefaultClient`
 
-This is how the real `Revisor` ended up, the one that does touch the network
-(`programas/revisor/internal/revisar/revisar.go`):
+This is how the real implementation of `Revisor` ended up, the one that does touch the network. It lives in
+its own package, `consulta` (`programas/revisor/internal/consulta/consulta.go`), separate from the interface
+it satisfies, which stays in `revisar` next to `Todos`, the one that uses it (lesson 5, section 5.2):
 
-<!-- verificar:extracto:internal/revisar/revisar.go -->
+<!-- verificar:extracto:internal/consulta/consulta.go -->
 ```go
-// HTTP es el Revisor de verdad: hace una petición GET y mira qué contesta.
+// HTTP consulta un servicio de verdad: hace una petición GET y mira qué
+// contesta.
+//
+// Cumple la interfaz revisar.Revisor sin declararlo y sin importar revisar: en
+// Go basta con tener el método Revisar (lección 3). La interfaz la declara quien
+// la usa, revisar.Todos; este paquete solo devuelve un tipo concreto.
 type HTTP struct {
 	Cliente *http.Client
 }
 
-// NuevoHTTP construye el Revisor con un cliente propio.
+// NuevoHTTP construye la consulta HTTP con un cliente propio.
 //
 // 🔴 El cliente es propio y no http.DefaultClient a propósito: el cliente por
 // omisión de Go NO tiene tiempo límite. Una petición contra un servicio que
@@ -56,7 +62,7 @@ type HTTP struct {
 // error y sin síntoma.
 //
 // El Timeout del cliente es la red de seguridad de último recurso. El límite que
-// de verdad manda es el del context, uno por servicio, que pone Todos.
+// de verdad manda es el del context, uno por servicio, que pone revisar.Todos.
 func NuevoHTTP(limiteGeneral time.Duration) HTTP {
 	return HTTP{Cliente: &http.Client{Timeout: limiteGeneral}}
 }
@@ -77,7 +83,7 @@ func (r HTTP) Revisar(ctx context.Context, s servicio.Servicio) servicio.Estado 
 		return servicio.Estado{
 			Servicio: s,
 			Duracion: time.Since(inicio),
-			Err:      fmt.Errorf("armando la peticion: %w", err),
+			Err:      fmt.Errorf("armando la peticion: %w", sinURL(err)),
 		}
 	}
 
@@ -122,9 +128,9 @@ closing** is not decorative: without draining the response body, the underlying 
 reused for the next request to the same server, and the program ends up opening a new connection every
 time instead of reusing the ones it already has.
 
-**`traducir` changes the raw error from `net/http` into one that is readable in a table:**
+**`traducir` changes the raw error from `net/http` into one that is readable in a table, and without the URL:**
 
-<!-- verificar:extracto:internal/revisar/revisar.go -->
+<!-- verificar:extracto:internal/consulta/consulta.go -->
 ```go
 func traducir(ctx context.Context, err error) error {
 	if ctx.Err() == context.DeadlineExceeded {
@@ -133,12 +139,32 @@ func traducir(ctx context.Context, err error) error {
 	if ctx.Err() == context.Canceled {
 		return fmt.Errorf("consulta cancelada")
 	}
-	return fmt.Errorf("no responde: %w", err)
+	return fmt.Errorf("no responde: %w", sinURL(err))
 }
 ```
 
-The error `net/http` gives out of the box carries the full URL and the word `Get`, which in a report table
-only take up space and tell the reader nothing new — that is why it is translated before being shown.
+<!-- verificar:extracto:internal/consulta/consulta.go -->
+```go
+func sinURL(err error) error {
+	var ue *url.Error
+	if errors.As(err, &ue) {
+		return ue.Err
+	}
+	return err
+}
+```
+
+🔒 **The error `net/http` gives out of the box carries the full URL**, with the word `Get` in front:
+`Get "http://127.0.0.1:59587/estado?token=abc123#ancla": dial tcp 127.0.0.1:59587: connect: connection refused`.
+It is not just noise in a table: a URL can carry a token in the *query string* or a user before the `@`, and
+the reason goes out as is in the report —as a table or as JSON—, which ends up in a terminal, in a log or in
+an alerting system. Every error the `net/http` client returns is a `*url.Error` (the `net/url` type that
+bundles the operation, the URL and the cause), so `sinURL` recognizes it with `errors.As` (lesson 3) and
+keeps only the cause. `config` already rejects URLs with a user or a password (lesson 5, section 5.3), but a
+token in the *query string* does get through —some services require one to be queried—, so this second
+gate does not trust the first one. The `TestEjecutar_elReporteNoRepiteLaURL` test (in
+`cmd/revisor/main_test.go`) checks it end to end: it queries a server that has already closed, with
+`?token=abc123` in the URL, and fails if the report, in either of the two formats, says `token` or `abc123`.
 
 ### 7.2 `main` isn't tested; `ejecutar` is
 
@@ -420,21 +446,22 @@ target system to compile for it, unlike how many other compiled languages work.
 ```
 $ go build -o revisor-normal ./cmd/revisor
 $ wc -c revisor-normal
-9464130 revisor-normal
+9515602 revisor-normal
 
 $ go build -ldflags="-s -w" -o revisor-chico ./cmd/revisor
 $ wc -c revisor-chico
-6386194 revisor-chico
+6419442 revisor-chico
 ```
 
-**From 9.46 MB to 6.39 MB, a real reduction of 32%**, by removing the symbol table (`-s`) and the DWARF
+**From 9.52 MB to 6.42 MB, a real reduction of 32.5%**, by removing the symbol table (`-s`) and the DWARF
 debugging information (`-w`) that the normal binary includes so that a debugger can inspect it. For a
 binary you are going to distribute to production and are not going to debug right there, that data is of
 no use and only takes up space — for one you are actively developing, keep it.
 
 ### 7.8 Testing code that does HTTP, without a real network: `httptest`
 
-Up to lesson 6, the concurrency tests used `Falso` (a `Revisor` that never touches the network). To test
+Up to lesson 6, the concurrency tests used `revisorFalso` (a `Revisor` that never touches the network and
+that only exists in the tests). To test
 the **complete** program —flags, reading the configuration, the real HTTP client, the report— without
 depending on an external service or on something listening on a fixed port, `net/http/httptest` starts a
 real server, on a port the operating system assigns by itself, inside the test process itself:
@@ -531,7 +558,7 @@ With a real service pointing to `https://example.com`:
 $ docker build -t revisor-demo:scratch .
 $ docker run --rm revisor-demo:scratch --formato tabla
 SERVICIO  ESTADO    TIEMPO  DETALLE
-ejemplo   FALLA      176ms  no responde: Get "https://example.com": tls: failed to verify certificate: x509: certificate signed by unknown authority
+ejemplo   FALLA      112ms  no responde: tls: failed to verify certificate: x509: certificate signed by unknown authority
 ```
 
 **It failed — and not because of the `revisor`, but because of something no `scratch` image brings: the
@@ -559,13 +586,13 @@ ENTRYPOINT ["/revisor", "--config", "/servicios.txt"]
 $ docker build -f Dockerfile.certs -t revisor-demo:scratch-certs .
 $ docker run --rm revisor-demo:scratch-certs --formato tabla
 SERVICIO  ESTADO    TIEMPO  DETALLE
-ejemplo   OK         238ms  200
+ejemplo   OK         126ms  200
 
 $ docker images revisor-demo:scratch-certs --format "{{.Size}}"
-14.7MB
+14.8MB
 ```
 
-**14.7 MB in total, against 14.4 MB without the certificates — less than 300 KB to solve the problem
+**14.8 MB in total, against 14.5 MB without the certificates — less than 300 KB to solve the problem
 correctly.** The binary is self-sufficient for everything that is *Go code*; what it never brings on its
 own is the trust about which authorities are legitimate, because that is information about the world
 (which certificate authorities exist and are still valid), not something the compiler can decide for you.
@@ -582,7 +609,7 @@ own is the trust about which authorities are legitimate, because that is informa
 | Closing the body of a nil response | (if it were done wrong) `panic: runtime error: invalid memory address or nil pointer dereference` | It would happen if `defer resp.Body.Close()` were placed before checking `err`; the `revisor` avoids it by checking the error first (section 7.1) |
 | `error` serialized directly to JSON without translating | `{}` (empty object, without any useful data, without any compilation error to warn you) | `encoding/json` doesn't know how to convert an `error` interface; that is why `reporte` uses `lineaJSON` with the reason already converted to text (section 7.4) |
 | Exit code not checked in a script | The script carries on as if nothing happened, even though a service failed | `ejecutar` does distinguish 0/1/2 (section 7.6); whoever integrates the `revisor` into a pipeline must read `$?`, not just the printed output |
-| Binary in a `FROM scratch` image, against HTTPS | `no responde: Get "https://...": tls: failed to verify certificate: x509: certificate signed by unknown authority` | The list of certificate authorities (`ca-certificates.crt`) is missing; copy it from an image that has it (section 7.10) |
+| Binary in a `FROM scratch` image, against HTTPS | `no responde: tls: failed to verify certificate: x509: certificate signed by unknown authority` | The list of certificate authorities (`ca-certificates.crt`) is missing; copy it from an image that has it (section 7.10) |
 
 ---
 
@@ -633,7 +660,7 @@ own is the trust about which authorities are legitimate, because that is informa
 1-7. There is no single reference output because it depends on your own implementation and your own
 machine; compare the shape of your result against the corresponding sections (7.1, 7.4, 7.5, 7.6, 7.7).
 
-8. The real run, on this course's `revisor`, on 30-sep-2026:
+8. The real run, on this course's `revisor`, on 22-oct-2026:
 
    ```
    $ gofmt -l .
@@ -643,12 +670,13 @@ machine; compare the shape of your result against the corresponding sections (7.
    (sin salida: limpio)
 
    $ go test ./... -race -cover
-   ok  	github.com/habil/revisor/cmd/revisor	1.21s	coverage: 79.2% of statements
+   ok  	github.com/habil/revisor/cmd/revisor	1.354s	coverage: 81.2% of statements
    	github.com/habil/revisor/cmd/servidor-demo		coverage: 0.0% of statements
-   ok  	github.com/habil/revisor/internal/config	1.17s	coverage: 97.4% of statements
-   ok  	github.com/habil/revisor/internal/reporte	1.18s	coverage: 100.0% of statements
-   ok  	github.com/habil/revisor/internal/revisar	1.33s	coverage: 61.9% of statements
-   ok  	github.com/habil/revisor/internal/servicio	1.17s	coverage: 92.3% of statements
+   ok  	github.com/habil/revisor/internal/config	1.317s	coverage: 95.7% of statements
+   ok  	github.com/habil/revisor/internal/consulta	1.354s	coverage: 56.2% of statements
+   ok  	github.com/habil/revisor/internal/reporte	1.320s	coverage: 100.0% of statements
+   ok  	github.com/habil/revisor/internal/revisar	1.472s	coverage: 97.1% of statements
+   ok  	github.com/habil/revisor/internal/servicio	1.340s	coverage: 92.3% of statements
    ```
 
    `cmd/servidor-demo` comes out at 0.0% without `ok` or `FAIL`, not because something is broken: with
@@ -657,11 +685,11 @@ machine; compare the shape of your result against the corresponding sections (7.
    `revisor` that gets distributed, and it has no logic of its own that decides anything — it only answers
    what it was programmed to answer — that is why it doesn't need tests of its own.
 
-   ⚠️ **The 61.9% of `internal/revisar` in this table is the artifact explained in section 5.7: per
+   ⚠️ **The 56.2% of `internal/consulta` in this table is the artifact explained in section 5.7: per
    package, it doesn't count what `TestEjecutar_reportaOKyFalla` (in `cmd/revisor`, a little higher up in
    this same run) exercises of `Revisar` when it speaks real HTTP against the `httptest` server.** Measured
-   with `-coverpkg=./...` over the whole project: `Revisar` goes up to 86.4% and the project total is
-   81.5%, not 61.9%. If you are going to cite a coverage number to decide something, run
+   with `-coverpkg=./...` over the whole project: `Revisar` goes up to 90.9% and the project total is
+   83.3%, not 56.2%. If you are going to cite a coverage number to decide something, run
    `-coverpkg=./...`, don't trust the per-package number alone.
 
 ---

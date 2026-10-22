@@ -471,37 +471,39 @@ Read it with the previous sections fresh, because each piece answers a problem y
   launching it separately, the closing and the reading happen **at the same time**, not one after the
   other.
 
-### 6.8 Testing it without a network: `Falso` and the measured parallelism limit
+### 6.8 Testing it without a network: a fake `Revisor` and the measured parallelism limit
 
 Testing `Todos` against real services would be slow and nondeterministic. The `revisor` uses a fake
-`Revisor` (`programas/revisor/internal/revisar/falso.go`) that simulates responses, delays, and even
-services that never answer, all in memory:
+`Revisor` (`programas/revisor/internal/revisar/falso_test.go`) that simulates responses, delays, and even
+services that never answer, all in memory. It lives in a `_test.go` file, next to the tests that use it:
+`go build` doesn't compile it, so it is not part of the program or of what the package exports (lesson 5,
+section 5.2):
 
 <!-- verificar:fragmento -->
 ```go
-type Falso struct {
-	Respuestas map[string]RespuestaFalsa
+type revisorFalso struct {
+	respuestas map[string]respuestaFalsa
 	mu         sync.Mutex
-	Contador   int
+	contador   int
 }
 
-func (f *Falso) Revisar(ctx context.Context, s servicio.Servicio) servicio.Estado {
+func (f *revisorFalso) Revisar(ctx context.Context, s servicio.Servicio) servicio.Estado {
 	f.mu.Lock()
-	f.Contador++
+	f.contador++
 	f.mu.Unlock()
 	// ...
 }
 ```
 
 🔒 **Here a mutex is needed, and it is the exception to the "prefer channels" rule from section 6.3.**
-`Contador` is a shared integer that **many goroutines increment at the same time** during the tests
-(`Falso.Revisar` is called concurrently, once for each service `Todos` is querying). A channel would serve
+`contador` is a shared integer that **many goroutines increment at the same time** during the tests
+(`revisorFalso.Revisar` is called concurrently, once for each service `Todos` is querying). A channel would serve
 to *send* results, but for a simple shared counter, a `sync.Mutex` around the only line that touches it is
 simpler and clearer. The rule is not "never use a mutex": it is "before using one, ask yourself whether a
 channel better expresses what you are doing" — and for sending results, almost always yes; for a shared
 counter, the mutex is almost always the right tool.
 
-With `Falso`, this test measures something that would otherwise be almost impossible to check with
+With a test `Revisor`, this test measures something that would otherwise be almost impossible to check with
 confidence: that the semaphore from section 6.7 really limits how many queries run at the same time, not
 just that it "works in general" (complete, unabridged version in
 `programas/revisor/internal/revisar/todos_test.go`):
@@ -541,8 +543,8 @@ measured it while it ran.
 
 ### 6.9 Time, measured: in series versus in parallel
 
-With `Falso` configured to simulate real delays, the `TestTodos_respetaElTimeoutPorServicio` test confirms
-the other side of the coin: a service that never answers (`Colgado: true`) with a
+With `revisorFalso` configured to simulate real delays, the `TestTodos_respetaElTimeoutPorServicio` test confirms
+the other side of the coin: a service that never answers (`colgado: true`) with a
 `Timeout: 30 * time.Millisecond` can't make `Todos` take longer than that:
 
 ```
@@ -663,7 +665,7 @@ nothing smells wrong until it is too late.
       results channel, semaphore, and per-service `context`.
 - [ ] I measured, with a real test (not from memory), that the `revisor`'s parallelism limit is
       respected.
-- [ ] I can explain why `Falso.Contador` uses a mutex instead of a channel, and why that doesn't
+- [ ] I can explain why `revisorFalso.contador` uses a mutex instead of a channel, and why that doesn't
       contradict the general rule from section 6.3.
 
 ---

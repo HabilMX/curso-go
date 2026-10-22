@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/habil/revisor/internal/config"
+	"github.com/habil/revisor/internal/consulta"
 	"github.com/habil/revisor/internal/reporte"
 	"github.com/habil/revisor/internal/revisar"
 )
@@ -50,7 +51,7 @@ func ejecutar(args []string, salida, errores *os.File) int {
 	ctx, cancelar := context.WithTimeout(context.Background(), *limiteGeneral)
 	defer cancelar()
 
-	r := revisar.NuevoHTTP(*limiteGeneral)
+	r := consulta.NuevoHTTP(*limiteGeneral)
 	estados := revisar.Todos(ctx, r, servicios, *paralelo)
 
 	switch *formato {

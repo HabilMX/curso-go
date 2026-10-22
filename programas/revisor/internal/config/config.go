@@ -7,7 +7,9 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -51,15 +53,14 @@ func Interpretar(datos []byte, origen string) ([]servicio.Servicio, error) {
 				origen, numero, len(campos))
 		}
 
-		nombre, url := campos[0], campos[1]
+		nombre, direccion := campos[0], campos[1]
 
 		if antes, repetido := vistos[nombre]; repetido {
 			return nil, fmt.Errorf("%s:%d: el nombre %q ya estaba en la linea %d",
 				origen, numero, nombre, antes)
 		}
-		if !tieneEsquema(url) {
-			return nil, fmt.Errorf("%s:%d: la URL %q debe empezar con http:// o https://",
-				origen, numero, url)
+		if err := validarURL(direccion); err != nil {
+			return nil, fmt.Errorf("%s:%d: %w", origen, numero, err)
 		}
 
 		timeout := time.Duration(0)
@@ -77,7 +78,7 @@ func Interpretar(datos []byte, origen string) ([]servicio.Servicio, error) {
 		}
 
 		vistos[nombre] = numero
-		servicios = append(servicios, servicio.Servicio{Nombre: nombre, URL: url, Timeout: timeout})
+		servicios = append(servicios, servicio.Servicio{Nombre: nombre, URL: direccion, Timeout: timeout})
 	}
 
 	if len(servicios) == 0 {
@@ -86,7 +87,28 @@ func Interpretar(datos []byte, origen string) ([]servicio.Servicio, error) {
 	return servicios, nil
 }
 
-func tieneEsquema(url string) bool {
-	u := strings.ToLower(url)
-	return strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "https://")
+// validarURL exige http o https y un servidor, y rechaza usuario y clave dentro
+// de la URL.
+//
+// 🔒 Una URL como https://usuario:clave@host lleva un secreto escrito en el
+// archivo, y una URL termina en logs, reportes y mensajes de error. Si un
+// servicio pide credenciales, van en otro lado (una variable de entorno, un
+// gestor de secretos), nunca en la URL. Por eso ningun error de esta funcion
+// repite la URL: solo dice que esta mal, para no imprimir el secreto que se
+// esta rechazando.
+func validarURL(crudo string) error {
+	u, err := url.Parse(crudo)
+	if err != nil {
+		return errors.New("la URL no se puede leer")
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return errors.New("la URL debe empezar con http:// o https://")
+	}
+	if u.Host == "" {
+		return errors.New("a la URL le falta el servidor")
+	}
+	if u.User != nil {
+		return errors.New("la URL trae usuario o clave (usuario:clave@...); las credenciales no van en la URL")
+	}
+	return nil
 }

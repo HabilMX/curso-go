@@ -108,22 +108,48 @@ revisor/
   internal/
     servicio/           → package servicio: los tipos (Servicio, Estado) y sus métodos
     config/             → package config: lee y valida el archivo de servicios
-    revisar/            → package revisar: la interfaz Revisor y quien la implementa
+    revisar/            → package revisar: Todos y la interfaz Revisor que necesita
+    consulta/           → package consulta: la consulta HTTP de verdad, que cumple Revisor
     reporte/            → package reporte: convierte estados en tabla o en JSON
 ```
 
 **Por responsabilidad, no por capa.** No hay un paquete `modelos` con todos los structs del programa ni
 un paquete `utilidades` con funciones sueltas: cada paquete tiene una sola pregunta que sabe responder.
 `servicio` sabe qué es un servicio y un estado. `config` sabe leer la configuración. `revisar` sabe
-consultar. `reporte` sabe imprimir. Si mañana cambias cómo se ve la tabla, tocas un archivo, no cinco.
+consultar muchos servicios a la vez. `consulta` sabe consultar uno por HTTP. `reporte` sabe imprimir. Si
+mañana cambias cómo se ve la tabla, tocas un archivo, no cinco.
 
-🔑 **`internal/` es una regla del compilador, no una convención de buena educación.** Cualquier paquete
-que viva bajo una carpeta llamada `internal/` solo puede ser importado por código que esté **dentro del
-mismo módulo**, en cualquier nivel arriba de ese `internal/`. Compruébalo: si otro módulo de Go —cualquiera,
-no solo uno tuyo— intenta `import "github.com/habil/revisor/internal/servicio"`, el compilador se niega
-a compilar, con un mensaje explícito de que ese paquete es interno. No es una recomendación que puedas
-ignorar bajo presión: es una restricción real, la misma clase de garantía que la mayúscula te da dentro
-de un struct (lección 3), pero a nivel de paquete completo.
+🔑 **Fíjate dónde vive la interfaz `Revisor`: en `revisar`, junto a `Todos`, que es quien la usa — no en
+`consulta`, que es quien la implementa.** Es la segunda regla de oro de la lección 3 (Buena práctica 3.4)
+llevada a paquetes, y es lo que recomienda [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments#interfaces),
+la página del wiki oficial de Go que reúne los comentarios más comunes al revisar código Go, en su sección
+*Interfaces*: *«Go interfaces generally belong in the package that uses values of the interface type, not
+the package that implements those values»* (las interfaces de Go pertenecen, en general, al paquete que usa
+valores del tipo interfaz, no al paquete que implementa esos valores). `consulta` devuelve un tipo
+concreto, `consulta.HTTP`, que cumple `Revisor` sin importar `revisar` y sin saber que esa interfaz existe;
+`cmd/revisor` es quien junta a los dos. La misma sección advierte contra el camino contrario: *«Do not
+define interfaces on the implementor side of an API "for mocking"»* (no declares interfaces del lado de
+quien implementa solo para poder sustituirlo en las pruebas). Por eso el doble de prueba que usa la lección
+6 vive en `internal/revisar/falso_test.go`: un archivo `_test.go` solo se compila con `go test`, así que el
+doble no entra al binario ni a lo que el paquete exporta.
+
+🔑 **`internal/` es una regla de la herramienta `go`, no una convención de buena educación.** Cualquier
+paquete que viva bajo una carpeta llamada `internal/` solo puede ser importado por código que esté **dentro
+del mismo módulo**, en cualquier nivel arriba de ese `internal/`. Compruébalo: si otro módulo de Go
+—cualquiera, no solo uno tuyo— intenta `import "github.com/habil/revisor/internal/servicio"`, el comando `go` se niega a
+construirlo, con un mensaje explícito de que ese paquete es interno (`use of internal package ... not
+allowed`, en la tabla de errores de esta lección); hasta `go list`, que no compila nada, lo rechaza igual. No
+es una recomendación que puedas ignorar bajo presión: es una restricción real, parecida a la garantía que la
+mayúscula te da dentro de un struct (lección 3), pero a nivel de paquete completo.
+
+⚠️ **Y no es el compilador quien la impone, aunque lo parezca.** La mayúscula es parte del lenguaje, y la
+revisa el compilador; `internal/` no. Lo dice la nota de la versión que la introdujo, [Go 1.4](https://go.dev/doc/go1.4#internalpackages):
+*«The Go language does not have the power to enforce this distinction, but as of Go 1.4 the go command introduces a mechanism
+to define “internal” packages that may not be imported by packages outside the source subtree in which they reside»* (el lenguaje Go no tiene cómo imponer esa distinción, pero a partir de Go 1.4 el comando go
+introduce un mecanismo para definir paquetes «internos» que no pueden ser importados por paquetes fuera del
+subárbol de código en el que viven). En la práctica da igual cuál de los dos te detiene —`go build` falla de
+todos modos—, pero sí importa saber dónde vive la regla: es del comando `go`, que la revisa antes de llamar
+al compilador.
 
 ⚠️ **Lo que NO hicimos, a propósito: un paquete `utils`, `helpers` o `common`.** Es el antipatrón más
 repetido en proyectos reales: alguien crea una carpeta para "cosas que no encajan en otro lado", y esa
@@ -157,18 +183,29 @@ $ (línea: "catalogo")
 prueba.txt:1: esperaba «nombre url [tiempo]», hay 1 campo(s)
 
 $ (línea: "catalogo catalogo.interno.mx")
-prueba.txt:1: la URL "catalogo.interno.mx" debe empezar con http:// o https://
+prueba.txt:1: la URL debe empezar con http:// o https://
 
 $ (línea: "catalogo https://a.mx nombas")
 prueba.txt:1: tiempo limite "nombas" invalido (usa 500ms, 2s, 1m): time: invalid duration "nombas"
 
 $ (dos líneas con el mismo nombre "catalogo")
 prueba.txt:2: el nombre "catalogo" ya estaba en la linea 1
+
+$ (línea: "pagos https://yo:supersecreto@pagos.interno.mx")
+prueba.txt:1: la URL trae usuario o clave (usuario:clave@...); las credenciales no van en la URL
 ```
 
-Fíjate en el último: **envuelve el error de `time.ParseDuration` con `%w`** (lección 3) en vez de
+Fíjate en el del tiempo límite: **envuelve el error de `time.ParseDuration` con `%w`** (lección 3) en vez de
 inventar su propio texto — así, si alguna vez necesitas distinguir programáticamente "duración inválida"
 de otro tipo de error con `errors.As`, la información original sigue ahí.
+
+🔒 **Y fíjate en lo que los dos errores de URL NO dicen: la URL.** Una URL puede llevar un secreto adentro
+—`https://usuario:clave@servidor` lleva la clave escrita—, y un mensaje de error termina en una terminal,
+en un log o en un reporte que lee alguien más. Por eso `config` rechaza toda URL que traiga usuario o
+clave (si un servicio pide credenciales, van en una variable de entorno o en un gestor de secretos, nunca
+en la URL) y, al rechazarla, **no la repite**: `la URL trae usuario o clave` basta para corregir el archivo,
+y repetirla imprimiría justo el secreto que se está rechazando. La lección 7 (sección 7.1) cierra el otro
+camino por el que una URL podría colarse al reporte: el error que devuelve `net/http`.
 
 ### 5.4 Pruebas: sin librerías, con tabla de casos
 
@@ -230,7 +267,7 @@ la vas a usar en cada paquete de aquí en adelante.
 ### 5.5 Probar los errores, no solo los aciertos
 
 Una tabla de casos también sirve para probar que algo **falla como debe**, no solo que funciona (versión
-abreviada aquí, con 3 de los 6 casos reales y struct literal posicional en vez de con nombre de campo,
+abreviada aquí, con 3 de los 9 casos reales y struct literal posicional en vez de con nombre de campo,
 para que quepa; la completa vive en `internal/config/config_test.go`):
 
 <!-- verificar:fragmento -->
@@ -276,17 +313,17 @@ go test ./... -race                    # detector de carreras (se explica a fond
 go test ./... -cover                   # porcentaje de líneas ejercitadas por las pruebas
 ```
 
-Corridos de verdad sobre el `revisor`, el 30-sep-2026:
+Corridos de verdad sobre el `revisor`, el 22-oct-2026:
 
 ```
 $ go test ./internal/servicio/... ./internal/config/... -cover
-ok  	github.com/habil/revisor/internal/servicio	0.195s	coverage: 92.3% of statements
-ok  	github.com/habil/revisor/internal/config	0.192s	coverage: 97.4% of statements
+ok  	github.com/habil/revisor/internal/servicio	0.165s	coverage: 92.3% of statements
+ok  	github.com/habil/revisor/internal/config	0.164s	coverage: 95.7% of statements
 ```
 
 ### 5.7 Qué hacer con un número de cobertura
 
-**92.3% y 97.4% no son metas, son puntos de partida para una pregunta: ¿qué es ese 8% y ese 3% que no se
+**92.3% y 95.7% no son metas, son puntos de partida para una pregunta: ¿qué es ese 8% y ese 4% que no se
 ejecutó, y me importa?** Con `go test -coverprofile` puedes ver exactamente qué líneas quedaron sin
 tocar:
 
@@ -303,32 +340,33 @@ hueco, decidir si importa (aquí, un poco: agregarías un caso con 404 en la tab
 fingir que no existe.
 
 🔴 **Y una trampa real, medida en este mismo proyecto: la cobertura por paquete puede subestimar una
-función central sin avisarte.** Corrido solo, el paquete `revisar` del `revisor` (que vas a conocer a
-fondo en la lección 6) reporta:
+función central sin avisarte.** Corrido solo, el paquete `consulta` del `revisor` (el que habla HTTP, que
+vas a conocer a fondo en la lección 7) reporta:
 
 ```
-$ go test ./internal/revisar/... -cover
-ok  	github.com/habil/revisor/internal/revisar	1.33s	coverage: 61.9% of statements
+$ go test ./internal/consulta/... -cover
+ok  	github.com/habil/revisor/internal/consulta	0.200s	coverage: 56.2% of statements
 ```
 
-**61.9% suena a que más de un tercio de ese paquete nunca se ejecuta en ninguna prueba — y es falso.** Su
-función más importante, `Revisar` (la que de verdad habla HTTP), sí está bien probada: solo que la prueba
-que la ejercita de verdad —`TestEjecutar_reportaOKyFalla`, con un servidor `httptest` real, en la lección
-7— vive en el paquete `cmd/revisor`, no en `internal/revisar`. `go test ./internal/revisar/...` **solo
+**56.2% suena a que casi la mitad de ese paquete nunca se ejecuta en ninguna prueba — y es falso.** Su
+función más importante, `Revisar` (la que de verdad habla HTTP), sí está bien probada: la prueba del propio
+paquete solo recorre el camino de la falla (un servidor que ya cerró, lección 7), y la que ejercita el
+camino del éxito —`TestEjecutar_reportaOKyFalla`, con un servidor `httptest` real, en la lección 7— vive en
+el paquete `cmd/revisor`, no en `internal/consulta`. `go test ./internal/consulta/...` **solo
 cuenta lo que las pruebas DE ESE PAQUETE ejercitan**; no ve lo que una prueba de otro paquete recorre por
 el camino, aunque pase por el mismo código. Con `-coverpkg`, que le pide a Go medir la cobertura de un
 paquete contando **todas** las pruebas del proyecto, no solo las suyas:
 
 ```
 $ go test ./... -coverpkg=./... -coverprofile=/tmp/cov.out
-$ go tool cover -func=/tmp/cov.out | grep 'revisar.go.*Revisar'
-github.com/habil/revisor/internal/revisar/revisar.go:48:  Revisar    86.4%
+$ go tool cover -func=/tmp/cov.out | grep 'consulta.go.*Revisar'
+github.com/habil/revisor/internal/consulta/consulta.go:47:	Revisar			90.9%
 
 $ go tool cover -func=/tmp/cov.out | tail -1
-total:                                                    (statements)    81.5%
+total:								(statements)		83.3%
 ```
 
-**86.4% para `Revisar`, 81.5% para el proyecto completo — no 61.9%.** La lección no es "ignora el número
+**90.9% para `Revisar`, 83.3% para el proyecto completo — no 56.2%.** La lección no es "ignora el número
 por paquete": es que un número de cobertura siempre responde a una pregunta implícita —¿cobertura de qué,
 medida contra las pruebas de dónde?— y `go test ./paquete/... -cover` calla esa segunda mitad de la
 pregunta. Antes de decidir que algo "no está probado" por un número bajo, corre `-coverpkg=./...` sobre
@@ -420,7 +458,7 @@ reportes   https://reportes.interno.mx
 ```
 
 `b.N` no lo eliges tú: Go corre el ciclo con valores de `N` cada vez más grandes hasta que la medición es
-estable, y reporta el tiempo por operación. Corrido de verdad sobre el `revisor` (Apple M5, 200,000
+estable, y reporta el tiempo por operación. Corrido de verdad sobre el `revisor` (Apple M5, 1,634,265
 repeticiones):
 
 ```
@@ -429,13 +467,14 @@ goos: darwin
 goarch: arm64
 pkg: github.com/habil/revisor/internal/config
 cpu: Apple M5
-BenchmarkInterpretar-10    	  200000	       432.5 ns/op
+BenchmarkInterpretar-10    	 1634265	       727.8 ns/op
 PASS
+ok  	github.com/habil/revisor/internal/config	2.063s
 ```
 
 **`-run '^$'`** le dice a `go test` que no corra ninguna prueba normal (una expresión regular que no
 hace match con ningún nombre), para que el reporte del benchmark no se mezcle con el de las pruebas. El
-número —432.5 nanosegundos por llamada, en esta máquina, en este momento— no es para memorizarlo: es para
+número —727.8 nanosegundos por llamada, en esta máquina, en este momento— no es para memorizarlo: es para
 compararlo **contra sí mismo** después de un cambio. Si mañana reescribes `Interpretar` y el benchmark
 sube a 4,000 ns/op, tienes una señal objetiva de que algo se puso más lento, sin necesitar opinar al
 respecto.
@@ -507,9 +546,10 @@ invisibles para cualquier prueba que solo use valores muy adentro o muy afuera d
 
 | El síntoma | Mensaje literal | Qué pasa y qué hacer |
 |---|---|---|
-| Import de un paquete `internal` ajeno | `use of internal package github.com/habil/revisor/internal/servicio not allowed` | El compilador impide importar algo bajo `internal/` desde fuera del módulo. No es un permiso que puedas dar: hay que exponer el tipo desde un paquete público si de verdad hace falta |
+| Import de un paquete `internal` ajeno | `use of internal package github.com/habil/revisor/internal/servicio not allowed` | El comando `go` impide importar algo bajo `internal/` desde fuera del módulo (no el compilador: sección 5.2). No es un permiso que puedas dar: hay que exponer el tipo desde un paquete público si de verdad hace falta |
 | Servicio duplicado en la configuración | `prueba.txt:2: el nombre "catalogo" ya estaba en la linea 1` | Dos servicios con el mismo nombre; corrige el archivo de configuración |
-| URL sin esquema | `prueba.txt:1: la URL "catalogo.interno.mx" debe empezar con http:// o https://` | Falta `http://` o `https://` al inicio de la URL |
+| URL sin esquema | `prueba.txt:1: la URL debe empezar con http:// o https://` | Falta `http://` o `https://` al inicio de la URL |
+| URL con usuario o clave | `prueba.txt:1: la URL trae usuario o clave (usuario:clave@...); las credenciales no van en la URL` | Pasa las credenciales por una variable de entorno o un gestor de secretos. El mensaje no repite la URL a propósito, para no imprimir la clave (sección 5.3) |
 | Tiempo límite mal escrito | `prueba.txt:1: tiempo limite "nombas" invalido (usa 500ms, 2s, 1m): time: invalid duration "nombas"` | El formato de duración de Go no es libre: usa un número seguido de una unidad (`ms`, `s`, `m`, `h`) |
 | Una prueba que rompiste a propósito | `servicio_test.go:64: TimeoutEfectivo() = 0s, quería 2s` | Ver sección 5.8: así se ve un `t.Errorf` señalando exactamente qué caso falló y por qué |
 | Cero pruebas en un paquete | `?   	github.com/habil/revisor/cmd/servidor-demo	[no test files]` | No es una falla: `go test` avisa explícitamente cuando un paquete no tiene ningún archivo `_test.go`, en vez de fingir que corrió algo |
@@ -534,6 +574,10 @@ fila de la tabla de arriba.
 - **Crear un paquete `utils`, `helpers` o `common`.** Ya lo viste en la sección 5.2: es el antipatrón más
   repetido y el que más rápido pierde su propósito. Nombra la responsabilidad, no el hecho de que "no
   encaja en otro lado".
+- **Declarar la interfaz junto a quien la implementa, o exportar un doble de prueba desde el código del
+  programa.** Ya lo viste en la sección 5.2: la interfaz va del lado de quien la usa, la implementación
+  devuelve un tipo concreto, y el doble vive en un archivo `_test.go`, que `go build` no compila. Es lo
+  que pide Go Code Review Comments en su sección *Interfaces*.
 - **Confundir "compiló" con "las pruebas pasaron".** `go build` verifica que el código es válido; no
   ejecuta ni una sola prueba. Son dos comandos distintos con dos preguntas distintas.
 - **Leer el código de salida de `go test` en vez del conteo.** Un paquete sin archivos de prueba sale con
@@ -620,15 +664,18 @@ proyecto de este curso.
    `internal/`, directo de las notas de versión de Go.
 4. [Go Blog: The Cover Story](https://go.dev/blog/cover) — cómo funciona `go test -cover` por dentro, y
    por qué un número alto no siempre significa pruebas buenas.
-5. [Liberar sin miedo en su propia infraestructura](https://www.habil.mx/es/blog/cicd-devsecops-infraestructura-propia/) — artículo sobre un camino a producción donde las pruebas, entre otras compuertas, pueden detener una liberación.
-6. [Pruebas que sí atrapan errores: más allá de la cobertura y del quality gate en verde](https://www.habil.mx/es/blog/pruebas-que-atrapan-errores-cobertura-quality-gate/) — artículo sobre por qué una cobertura alta no basta y cómo comprobar que una prueba sirve, la idea de las secciones 5.7 y 5.8.
+5. [Go Code Review Comments: Interfaces](https://go.dev/wiki/CodeReviewComments#interfaces) — dónde
+   declarar una interfaz y dónde poner el doble de prueba, en palabras de la guía de revisión de código de
+   Go; es la regla de la sección 5.2.
+6. [Liberar sin miedo en su propia infraestructura](https://www.habil.mx/es/blog/cicd-devsecops-infraestructura-propia/) — artículo sobre un camino a producción donde las pruebas, entre otras compuertas, pueden detener una liberación.
+7. [Pruebas que sí atrapan errores: más allá de la cobertura y del quality gate en verde](https://www.habil.mx/es/blog/pruebas-que-atrapan-errores-cobertura-quality-gate/) — artículo sobre por qué una cobertura alta no basta y cómo comprobar que una prueba sirve, la idea de las secciones 5.7 y 5.8.
 
 ### Términos de esta lección
 
 | Término | Qué significa |
 |---|---|
 | `go.sum` | archivo con las huellas criptográficas de las dependencias externas; el `revisor` no lo tiene porque no usa ninguna |
-| `internal/` | carpeta especial que el compilador de Go impide importar desde fuera del módulo |
+| `internal/` | carpeta especial que la herramienta `go` impide importar desde fuera del módulo |
 | tabla de casos | patrón de prueba donde una lista de entradas y salidas esperadas se recorre con un solo cuerpo de prueba |
 | `t.Run` | ejecuta un subcaso con su propio nombre, para que el reporte diga exactamente cuál falló |
 | cobertura | porcentaje de líneas del código que las pruebas ejercitaron al correr |

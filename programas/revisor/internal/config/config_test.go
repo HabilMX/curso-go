@@ -45,6 +45,21 @@ func TestInterpretar_casosDeError(t *testing.T) {
 			contexto: "debe empezar con http",
 		},
 		{
+			nombre:   "url sin servidor",
+			entrada:  "catalogo http://\n",
+			contexto: "le falta el servidor",
+		},
+		{
+			nombre:   "url con usuario y clave",
+			entrada:  "catalogo https://yo:supersecreto@a.mx\n",
+			contexto: "las credenciales no van en la URL",
+		},
+		{
+			nombre:   "url con usuario sin clave",
+			entrada:  "catalogo https://token123@a.mx\n",
+			contexto: "las credenciales no van en la URL",
+		},
+		{
 			nombre:   "tiempo limite invalido",
 			entrada:  "catalogo https://a.mx nombas\n",
 			contexto: "invalido",
@@ -76,6 +91,18 @@ func TestInterpretar_casosDeError(t *testing.T) {
 				t.Errorf("Interpretar() error = %q, quería que contuviera %q", err.Error(), c.contexto)
 			}
 		})
+	}
+}
+
+// TestInterpretar_elErrorNoRepiteElSecreto: rechazar una URL con credenciales
+// no sirve de nada si el mensaje de error imprime la clave que se rechaza.
+func TestInterpretar_elErrorNoRepiteElSecreto(t *testing.T) {
+	_, err := Interpretar([]byte("pagos https://yo:supersecreto@pagos.interno.mx\n"), "prueba.txt")
+	if err == nil {
+		t.Fatal("Interpretar() aceptó una URL con usuario y clave")
+	}
+	if strings.Contains(err.Error(), "supersecreto") {
+		t.Errorf("el error repite la clave: %q", err.Error())
 	}
 }
 

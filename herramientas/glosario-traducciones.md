@@ -190,3 +190,10 @@ archivo: en «checker» (`revisor`), fr «vérificateur» (`revisor`), pt «veri
 | receptor de valor / de puntero | value receiver / pointer receiver | receveur valeur / pointeur | receptor de valor / de ponteiro | получател по стойност / по указател | trad-bg (aviso: en uso en bg/03) |
 | hilo (del sistema operativo) | thread (OS thread) | thread (fil d'exécution) | thread | нишка (thread) | trad-pt (aviso: en uso desde la lección 6) |
 | traza (de pila, de un panic) | stack trace | trace d'appels (stack trace) | stack trace | трасиране на стека (stack trace) | trad-pt (aviso: en uso desde la lección 6) |
+| credenciales (usuario y clave en una URL) | credentials | identifiants | credenciais | идентификационни данни | trad-es (aviso: en uso desde la lección 5) |
+| clave (contraseña) | password | mot de passe | senha | парола | trad-es (aviso: en uso desde la lección 5) |
+| gestor de secretos | secrets manager | gestionnaire de secrets | gerenciador de segredos | мениджър на тайни | trad-es (aviso: en uso desde la lección 5) |
+| log (registro de eventos de un programa; no es la `bitacora` del alumno) | log | journal | log | лог | trad-es (aviso: en uso desde la lección 5) |
+| *query string* | *query string* | *query string* | *query string* | *query string* | trad-es (aviso: en uso desde la lección 7) |
+| del lado de quien la usa / de quien la implementa (una interfaz) | on the side of the one that uses it / that implements it | du côté de celui qui l'utilise / qui l'implémente | do lado de quem a usa / de quem a implementa | от страната на този, който го използва / който го имплементира | trad-es (aviso: en uso desde la lección 5) |
+| herramienta `go` / comando `go` (no es el compilador) | the `go` tool / the `go` command | l'outil `go` / la commande `go` | a ferramenta `go` / o comando `go` | инструментът `go` / командата `go` | trad-es (aviso: en uso desde la lección 5) |
