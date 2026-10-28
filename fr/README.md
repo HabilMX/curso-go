@@ -1,4 +1,4 @@
-# Cours de Go — de zéro à l'écriture d'un bon programme
+# Cours de Go — de zéro à un bon programme
 
 **Par Dorian Chávez, fondateur de Hábil et architecte d'intégration.**
 
@@ -75,7 +75,7 @@ prend pas.
 
 ## Comment l'utiliser
 
-- **Une séance de 90 minutes par semaine**, ou deux de 45. Moins, cela ne prend pas ; plus de deux heures
+- **Une séance de 90 minutes par semaine**, ou deux de 45. Moins, cela ne s'ancre pas ; plus de deux heures
   d'affilée, cela s'oublie.
 - 🔴 **Écris le code à la main, toujours.** Copier-coller produit des fichiers, pas des connaissances. Tes
   doigts apprennent des choses que tes yeux n'apprennent pas.
@@ -89,7 +89,7 @@ prend pas.
 - **[`bitacora.md`](bitacora.md) est à toi** : doutes, faux pas et ce qui t'a surpris. C'est ce qui fait de
   ceci ton cours.
 
-## Les trois sources qui valent la peine, dans cet ordre
+## Les trois sources à connaître, dans cet ordre
 
 1. **[A Tour of Go](https://go.dev/tour/)** — officiel, interactif, 2-3 h. **En entier, pas survolé.**
 2. **[Go by Example](https://gobyexample.com/)** — chaque concept avec un code minimal. Comme référence.

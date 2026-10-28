@@ -20,10 +20,20 @@ jobs:
           go-version-file: programas/revisor/go.mod
 
       - name: Compilar y ejecutar los programas de las lecciones 2 a 4
-        run: herramientas/verificar-programas.sh
+        # Los cinco idiomas, no solo el español: el código de los bloques es
+        # idéntico en todos, así que si una traducción lo rompe, se ve aquí.
+        run: |
+          for idi in es en fr pt bg; do
+            echo "── idioma: $idi"
+            herramientas/verificar-programas.sh "$idi"
+          done
 
       - name: Comparar los extractos de las lecciones 5 a 7 con el código real
-        run: herramientas/verificar-extractos.sh
+        run: |
+          for idi in es en fr pt bg; do
+            echo "── idioma: $idi"
+            herramientas/verificar-extractos.sh "$idi"
+          done
 
       - name: Comprobar que programas/ coincide con las lecciones
         run: herramientas/generar-programas.sh --comprobar

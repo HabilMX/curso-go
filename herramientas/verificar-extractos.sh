@@ -52,7 +52,7 @@
 #   - el paso de extracción no produjo NINGUNA línea de resultado
 #   - el total de bloques encontrados es 0
 #
-# Uso:   herramientas/verificar-extractos.sh                 (corre sobre el curso real)
+# Uso:   herramientas/verificar-extractos.sh [idioma]        (por omisión: es)
 #        herramientas/verificar-extractos.sh --probar        (autoprueba: siembra los
 #                                                   defectos conocidos — H1 a
 #                                                   H6, más los dos ataques al
@@ -676,5 +676,9 @@ if [ "${1:-}" = "--probar" ]; then
   exit $?
 fi
 
-correr_verificacion "es/0[5-7]-*.md" "programas/revisor"
+# El idioma llega como primer argumento; por omisión, el español. El código de
+# los bloques es idéntico en los cinco idiomas, así que verificarlos todos
+# impide que una traducción rompa un programa sin que nadie se entere.
+IDI="${1:-es}"
+correr_verificacion "$IDI/0[5-7]-*.md" "programas/revisor"
 exit $?
