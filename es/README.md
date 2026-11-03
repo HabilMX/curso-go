@@ -1,6 +1,6 @@
 # Curso de Go — de cero a escribir un buen programa
 
-**Por Dorian Chávez, fundador de Hábil y arquitecto de integración.**
+**Por Dorian Chávez, cofundador de Hábil y arquitecto de integración.**
 
 **Para quién es:** alguien que va empezando — primer año de universidad, o recién salido de la
 escuela. **No damos por hecho nada**: ni que tienes Go instalado, ni que sabes qué es un puntero, ni qué

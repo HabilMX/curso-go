@@ -1,6 +1,6 @@
 # Go course — from zero to writing a good program
 
-**By Dorian Chávez, founder of Hábil and integration architect.**
+**By Dorian Chávez, co-founder of Hábil and integration architect.**
 
 **Who it is for:** someone who is just starting out — first year of university, or fresh out of school.
 **We take nothing for granted**: not that you have Go installed, not that you know what a pointer is, not

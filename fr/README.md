@@ -1,6 +1,6 @@
 # Cours de Go — de zéro à un bon programme
 
-**Par Dorian Chávez, fondateur de Hábil et architecte d'intégration.**
+**Par Dorian Chávez, cofondateur de Hábil et architecte d'intégration.**
 
 **Pour qui :** quelqu'un qui débute — première année d'université, ou tout juste sorti de l'école. **Nous ne
 tenons rien pour acquis** : ni que tu as Go installé, ni que tu sais ce qu'est un pointeur, ni ce que signifie
