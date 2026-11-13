@@ -99,7 +99,7 @@ framework e não a linguagem.
 
 ## Quem escreve isto
 
-Este curso é escrito por **Dorian Chávez**, CEO e consultor principal da **Hábil**, empresa mexicana de
+Este curso é escrito por **Dorian Chávez**, cofundador e Chief Executive Officer da **Hábil**, empresa mexicana de
 engenharia de software. Engenheiro em Sistemas Computacionais pelo IPN (ESCOM), com 26 anos construindo
 e operando sistemas em produção.
 

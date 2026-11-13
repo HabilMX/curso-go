@@ -104,7 +104,7 @@ apprend le framework et pas le langage.
 
 ## Qui écrit ceci
 
-Ce cours est écrit par **Dorian Chávez**, CEO et consultant principal de **Hábil**, cabinet mexicain
+Ce cours est écrit par **Dorian Chávez**, cofondateur et Chief Executive Officer de **Hábil**, cabinet mexicain
 d'ingénierie logicielle. Ingénieur en systèmes informatiques de l'IPN (ESCOM), avec 26 ans passés à construire
 et à exploiter des systèmes en production.
 

@@ -100,7 +100,7 @@ framework and not the language.
 
 ## Who writes this
 
-This course is written by **Dorian Chávez**, CEO and principal consultant of **Hábil**, a Mexican software
+This course is written by **Dorian Chávez**, co-founder and Chief Executive Officer of **Hábil**, a Mexican software
 engineering firm. Computer Systems Engineer from the IPN (ESCOM), with 26 years building and operating
 systems in production.
 
